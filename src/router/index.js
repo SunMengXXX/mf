@@ -55,6 +55,11 @@ const router = createRouter({
       path: '/account',
       name: 'Account',
       component: () => import(/* webpackChunkName: "account" */ '../views/Account.vue')
+    },
+    {
+      path: '/info',
+      name: 'Info',
+      component: () => import(/* webpackChunkName: "Info" */ '../views/Info.vue')
     }
   ]
 })

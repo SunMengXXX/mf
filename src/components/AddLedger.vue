@@ -10,10 +10,9 @@
         >
       </header>
 
-      <div class="money">
-        <span>账本名称</span>
-        <span class="amount animation">{{ ledgerName }}</span>
-      </div>
+      <van-cell-group inset>
+        <van-field v-model="ledgerName" label="账本名称" placeholder="" />
+      </van-cell-group>
       <div class="filter">
         <span>账本类型</span>
         <div class="type">
@@ -28,6 +27,10 @@
             >共享</span
           >
         </div>
+      </div>
+      <div class="money">
+        <span>当月预算</span>
+        <span class="amount animation">{{ ledgerName }}</span>
       </div>
       <div class="marks" v-if="marks" @click="marksVisible = true">
         {{ marks }}
@@ -80,7 +83,7 @@ export default {
         : {}, // 当前选择的类型对象
       showDay: false, // 选择日期显示/隐藏
       date: id ? dayjs(Number(props.detail.date)).$d : new Date(), // 日期
-      marks: id ? props.ledger.marks : ''
+      marks: id ? props.ledger.marks : "",
     });
 
     onMounted(async () => {

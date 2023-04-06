@@ -3,7 +3,7 @@ import App from './App.vue'
 import dayjs from 'dayjs'
 import 'lib-flexible/flexible'
 import router from './router'
-import { Search, Image as VanImage,Grid, GridItem, Button, Tabbar, TabbarItem, Form, Field, Icon, NavBar, Cell, CellGroup, Popup, List, PullRefresh, DatetimePicker, NumberKeyboard, Dialog, Progress, Rate, Divider } from 'vant';
+import {  Uploader, Search, Image as VanImage, Grid, GridItem, Button, Tabbar, TabbarItem, Form, Field, Icon, NavBar, Cell, CellGroup, Popup, List, PullRefresh, DatetimePicker, NumberKeyboard, Dialog, Progress, Rate, Divider } from 'vant';
 import 'vant/lib/index.css'; // 全局引入样式
 import './index.css'
 
@@ -23,8 +23,10 @@ app.config.globalProperties.$filters = {
 }
 
 app.use(router)
-app.use(Tabbar);
-app.use(TabbarItem);
+app.use(Tabbar)
+app.use(TabbarItem)
+app.use(Uploader)
+app.use(Dialog)
 app.use(Form)
 app.use(Field)
 app.use(Button) // 注册组件
@@ -37,7 +39,6 @@ app.use(List)
 app.use(PullRefresh)
 app.use(DatetimePicker)
 app.use(NumberKeyboard)
-app.use(Dialog)
 app.use(Progress)
 app.use(Rate)
 app.use(Divider)

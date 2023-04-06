@@ -2,8 +2,16 @@
   <div class="account">
     <Header title="账户安全" />
     <van-cell title="密码修改" @click="visible = true" is-link />
-    <van-button class="logout" type="primary" size="large" @click="logout">退出登录</van-button>
-    <van-dialog class="modal-pass" v-model:show="visible" @confirm="handleOk" title="修改密码" show-cancel-button>
+    <van-button class="close" type="primary" size="large" @click="close"
+      >注销账户</van-button
+    >
+    <van-dialog
+      class="modal-pass"
+      :show="visible"
+      @confirm="handleOk"
+      title="修改密码"
+      show-cancel-button
+    >
       <van-cell-group>
         <van-field
           v-model="oldPass"
@@ -29,79 +37,92 @@
 </template>
 
 <script>
-import { reactive, toRefs } from 'vue'
-import { useRouter } from 'vue-router'
-import { Toast } from 'vant'
-import Header from '../components/Header.vue'
-import axios from '../utils/axios'
-
+import { reactive, toRefs } from "vue";
+import { useRouter } from "vue-router";
+import { Dialog, Toast } from "vant";
+import Header from "../components/Header.vue";
+import axios from "../utils/axios";
+/* import { showConfirmDialog } from "vant"; */
 export default {
-  name: 'Account',
+  name: "Account",
   components: {
-    Header
+    Header,
   },
   setup() {
-    const router = useRouter()
+    const router = useRouter();
     const state = reactive({
       visible: false,
-      oldPass: '',
-      newPass: '',
-      newPass2: ''
-    })
+      oldPass: "",
+      newPass: "",
+      newPass2: "",
+    });
 
     // 修改密码
     const handleOk = async () => {
       if (state.newPass != state.newPass2) {
-        Toast.fail('新密码不一致')
-        return
+        Toast.fail("新密码不一致");
+        return;
       }
-      const { data } = axios.post('/user/modify_pass', {
-        old_pass: state.oldPass,
-        new_pass: state.newPass,
-        new_pass2: state.newPass2
+      const data = await axios.post("/HNBC/user/updatepassword", {
+        originalpassword: state.oldPass,
+        newpassword: state.newPass,
+      });
+
+      Toast.success(data.msg);
+    };
+
+    // 注销账户
+    const close = () => {
+      Dialog.confirm({
+        title: "危险操作",
+        message: "请您确认是否要注销账户\n(该操作不可逆)",
       })
-
-      Toast.success('修改成功')
-    }
-
-    // 退出登录
-    const logout = () => {
-      localStorage.removeItem('token')
-      router.push({ path: '/login' })
-    }
+        .then(async () => {
+          // 确认
+          const data = await axios.delete("/HNBC/user/deleteuser");
+          Toast.success({message:data.msg+'\n即将跳转至登录页面',duration:1000})
+          localStorage.clear();
+          setTimeout(() => {
+            router.push({ path: "/login" });
+          }, 1500);
+        })
+        .catch(() => {
+          // 取消
+        });
+    };
 
     return {
       ...toRefs(state),
       handleOk,
-      logout
-    }
-  }
-}
+      close,
+    };
+  },
+};
 </script>
 
 <style lang="less">
-  @import url('../config/custom.less');
-  .account {
-    min-height: 100%;
-    background-color: #f5f5f5;
-    
-    .logout {
-      display: block;
-      margin: 0 auto;
-      width: 90%;
-      margin-top: 20px;
-      background-color: @primary;
-      border-color: @primary;
+@import url("../config/custom.less");
+.account {
+  min-height: 100%;
+  background-color: #f5f5f5;
+
+  .close {
+    display: block;
+    margin: 0 auto;
+    width: 90%;
+    margin-top: 20px;
+    background-color: @danger;
+    border-color: @danger;
+  }
+  .modal-pass {
+    .van-dialog__header {
+      padding: 10px 0;
     }
-    .modal-pass {
-      .van-dialog__header {
-        padding: 10px 0;
-      }
-      .van-dialog__content {
-        .van-cell-group {
-          padding: 20px;
-        }
+    .van-dialog__content {
+      .van-cell-group {
+        padding: 20px;
       }
     }
   }
+}
 </style>

@@ -6,8 +6,9 @@ import router from '../router'
 axios.defaults.baseURL = 'http://127.0.0.1:4523/m1/2543666-0-default'
 axios.defaults.withCredentials = true
 axios.defaults.headers['X-Requested-With'] = 'XMLHttpRequest'
-axios.defaults.headers['Authorization'] = `${localStorage.getItem('token') || null}`
+axios.defaults.headers['authorization'] = `${localStorage.getItem('token') || null}`
 axios.defaults.headers.post['Content-Type'] = 'application/json'
+
 
 axios.interceptors.response.use(res => {
   /*if (typeof res.data != 'object') {

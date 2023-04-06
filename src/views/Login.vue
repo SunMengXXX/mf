@@ -162,11 +162,12 @@ export default {
     const onSubmit = async (values) => {
       try {
         if (state.type == "login") {
-          const { data } = await axios.post("/user/login", {
+          const data = await axios.post("/user/login", {
             phone: state.userName.includes("@") ? null : state.userName,
             email: state.userName.includes("@") ? state.userName : null,
             pass: state.userPwd,
           });
+          console.log(data)
           localStorage.setItem("token", data.data);
           router.replace("/");
         } else {
