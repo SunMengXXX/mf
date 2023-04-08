@@ -25,8 +25,8 @@
     >
     <div class="sort" v-if="!search">
       <div class="type">
-        <span @click="sort('heat')"><van-icon name="clock-o" />热度</span>
         <span @click="sort('createtime')"><van-icon name="fire-o" />时间</span>
+        <span @click="sort('heat')"><van-icon name="clock-o" />热度</span>   
       </div>
     </div>
     <div class="home">
@@ -78,14 +78,7 @@ export default {
       currentTime: dayjs().format("YYYY-MM"),
     });
 
-    const sort = (type) => {
-      if (type==='createtime') {
-        getBillList("/ledger/list")
-      }
-      else{
-        getBillList("/ledger/list")
-      }
-    };
+    
 
     const getBillList = async (uri) => {
       const { data } = await axios.get(uri);
@@ -95,8 +88,18 @@ export default {
       }
       state.loading = false;
       state.list = data;
-      console.log(state.list);
+      state.totalPage += data.length;
+      if (state.page >= state.totalPage) state.finished = true;
     };
+
+    const sort = (type= "createtime") => {
+      if (type === "createtime") {
+        getBillList("/HNBC/ledger/allbytime");
+      } else {
+        getBillList("/HNBC/ledger/allbynums");
+      }
+    };
+
     const onLoad = () => {
       if (!state.refreshing && state.page < state.totalPage) {
         state.page = state.page + 1;
@@ -115,14 +118,8 @@ export default {
       state.loading = true;
       onLoad();
     };
-    // 筛选类型
-    const select = (item) => {
-      state.currentSelect = item;
-      onRefresh();
-    };
     // 添加账单弹窗开关
     const addLedger = () => {
-      console.log(AddLedgerRef);
       AddLedgerRef.value.toggle();
     };
     return {
@@ -130,7 +127,6 @@ export default {
       AddLedgerRef,
       onLoad,
       onRefresh,
-      select,
       addLedger,
       sort,
 

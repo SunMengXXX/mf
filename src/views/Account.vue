@@ -80,7 +80,10 @@ export default {
         .then(async () => {
           // 确认
           const data = await axios.delete("/HNBC/user/deleteuser");
-          Toast.success({message:data.msg+'\n即将跳转至登录页面',duration:1000})
+          Toast.success({
+            message: data.msg + "\n即将跳转至登录页面",
+            duration: 1000,
+          });
           localStorage.clear();
           setTimeout(() => {
             router.push({ path: "/login" });

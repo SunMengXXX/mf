@@ -10,6 +10,7 @@
         <span class="slogen">性别：{{ user.sex || "" }}</span>
       </div>
     </div>
+    <Circle :all="allBudget" :remain="remainBudget" ></Circle>
     <van-grid class="grid" direction="horizontal" :column-num="2">
       <van-grid-item icon="bill-o" text="账本" />
       <van-grid-item icon="friends-o" text="好友" />
@@ -26,13 +27,16 @@
 </template>
 
 <script>
-import { onMounted, reactive, toRefs } from "vue";
+import { onMounted, ref, reactive, toRefs } from "vue";
 import axios from "../utils/axios";
-import M from "minimatch";
 import router from "../router/index";
 import { Toast } from "vant";
+import Circle from "../components/Circle.vue";
 export default {
   name: "User",
+  components: {
+    Circle,
+  },
   setup() {
     const state = reactive({
       user: {
@@ -45,9 +49,12 @@ export default {
         ledgerDay: null,
       }, // 用户信息
     });
+    const allBudget = ref(0)
+    const remainBudget = ref(0)
 
     onMounted(async () => {
       getUserInfo();
+      getUserBudget();
     });
 
     // 获取用户信息
@@ -61,6 +68,20 @@ export default {
       state.user.ledgerDay = data.ledgerday;
       state.user.avatar = data.icon;
       localStorage.setItem("user", JSON.stringify(data));
+    };
+
+    //获取用户总预算
+    const getUserBudget = async () => {
+      const { data } = await axios.get("/HNBC/userbudget/all");
+      length = data.length;
+      let all = 0;
+      let remain = 0;
+      for (let i = 0; i < length; i++) {
+        all += data[i].amount;
+        remain += data[i].residual;
+      }
+      allBudget.value = all;
+      remainBudget.value = remain;
     };
 
     // 退出登录
@@ -79,6 +100,8 @@ export default {
     return {
       ...toRefs(state),
       logout,
+      allBudget,
+      remainBudget
     };
   },
 };
