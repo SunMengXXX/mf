@@ -10,10 +10,10 @@
         <span class="slogen">性别：{{ user.sex || "" }}</span>
       </div>
     </div>
-    <Circle :all="allBudget" :remain="remainBudget" ></Circle>
+    <Circle :all="allBudget" :remain="remainBudget"></Circle>
     <van-grid class="grid" direction="horizontal" :column-num="2">
       <van-grid-item icon="bill-o" text="账本" />
-      <van-grid-item icon="friends-o" dot text="好友" @click="friendsList" />
+      <van-grid-item icon="friends-o" :dot="dot" text="好友" @click="friendsList" />
     </van-grid>
     <div class="content">
       <van-cell icon="user-circle-o" to="/info" title="修改信息" is-link />
@@ -32,6 +32,7 @@ import axios from "../utils/axios";
 import router from "../router/index";
 import { Toast } from "vant";
 import Circle from "../components/Circle.vue";
+import { checkFriendRequest } from "../tools/checkfriendrequest";
 export default {
   name: "User",
   components: {
@@ -49,12 +50,19 @@ export default {
         ledgerDay: null,
       }, // 用户信息
     });
-    const allBudget = ref(0)
-    const remainBudget = ref(0)
+    const allBudget = ref(0);
+    const remainBudget = ref(0);
+
+    // 检查好友请求 有的话显示小红点
+    const friendReq = ref([]);
+    const dot = ref(false);
 
     onMounted(async () => {
       getUserInfo();
       getUserBudget();
+      checkFriendRequest();
+      friendReq.value = localStorage.getItem("friendReq");
+      dot.value = JSON.parse(friendReq.value).length === 0 ? false : true;
     });
 
     // 获取用户信息
@@ -84,9 +92,9 @@ export default {
       remainBudget.value = remain;
     };
 
-    const friendsList = () =>{
-      router.push({ path: "/friends" })
-    }
+    const friendsList = () => {
+      router.push({ path: "/friends" });
+    };
     // 退出登录
     const logout = async () => {
       const data = await axios.get("/HNBC/user/logout");
@@ -105,7 +113,9 @@ export default {
       logout,
       allBudget,
       remainBudget,
-      friendsList
+      friendsList,
+      friendReq,
+      dot
     };
   },
 };

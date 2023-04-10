@@ -1,46 +1,72 @@
 <template>
   <van-tabbar v-model="active">
-    <van-tabbar-item name="/ledger" icon="balance-pay" @click="link('/ledger')">账本</van-tabbar-item>
-    <van-tabbar-item name="/home" icon="notes-o" @click="link('/home')">明细</van-tabbar-item>
-    <van-tabbar-item name="/user" icon="user-o" @click="link('/user')">我的</van-tabbar-item>
+    <van-tabbar-item name="/ledger" icon="balance-pay" @click="link('/ledger')"
+      >账本</van-tabbar-item
+    >
+    <van-tabbar-item name="/home" icon="notes-o" @click="link('/home')"
+      >明细</van-tabbar-item
+    >
+    <van-tabbar-item
+      name="/user"
+      :dot="dot"
+      icon="user-o"
+      @click="link('/user')"
+      >我的</van-tabbar-item
+    >
   </van-tabbar>
 </template>
 
 <script>
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { checkFriendRequest } from "../tools/checkfriendrequest";
 export default {
-  name: 'Tabbar',
+  name: "Tabbar",
   props: {
-    msg: String
+    msg: String,
   },
   setup() {
-    const router = useRouter()
-    const active = ref('/home')
+    const router = useRouter();
+    const active = ref("/home");
 
     const link = (path) => {
-      router.push({ path })
-    }
+      router.push({ path });
+      checkFriendRequest();
+      friendReq.value = localStorage.getItem("friendReq");
+      dot.value = JSON.parse(friendReq.value).length === 0 ? false : true;
+    };
+
+    // 检查好友请求 有的话显示小红点
+    const friendReq = ref([]);
+    const dot = ref(false);
 
     onMounted(() => {
-      active.value = router.currentRoute.value.path
-    })
+      active.value = router.currentRoute.value.path;
+      checkFriendRequest();
+      friendReq.value = localStorage.getItem("friendReq");
+      dot.value = JSON.parse(friendReq.value).length === 0 ? false : true;
+    });
 
     router.afterEach(() => {
-      active.value = router.currentRoute.value.path
-    })
+      active.value = router.currentRoute.value.path;
+    });
 
+    watch(friendReq, (newVal) => {
+      //console.log(JSON.parse(newVal));
+    });
     return {
       active,
-      link
-    }
-  }
-}
+      link,
+      friendReq,
+      dot,
+    };
+  },
+};
 </script>
 
 <style lang="less">
-  @import url('../config/custom.less');
-  .van-tabbar-item--active {
-    color: @primary!important;
-  } 
+@import url("../config/custom.less");
+.van-tabbar-item--active {
+  color: @primary!important;
+}
 </style>

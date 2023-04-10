@@ -67,9 +67,9 @@ export default {
       marksVisible: false,
       newMark: "",
     });
-    const actions = [{ name: "修改备注" }, { name: "删除好友" }];
+    const actions = [{ name: "修改备注" }, { name: "删除好友" },{name:'取消'}];
 
-    //阻止关闭弹框
+    // 异步关闭弹框
     const beforeClose = async (action) => {
       if (action === "confirm") {
         if (
@@ -105,6 +105,7 @@ export default {
     // 好友功能
     const onSelect = (item) => {
       if (item.name === "修改备注") {
+        state.show = false;
         state.marksVisible = true;
       } else if (item.name === "删除好友") {
         Dialog.confirm({
@@ -121,8 +122,11 @@ export default {
             ctx.emit("refresh");
           })
           .catch(() => {});
+      }else{
+        state.show = false;
       }
     };
+
     const setting = () => {
       state.show = !state.show;
     };

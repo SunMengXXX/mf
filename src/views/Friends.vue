@@ -15,37 +15,46 @@
     </div>
     <!-- 好友申请 -->
     <div v-if="newFriendsPage">
-      <van-search
-        v-model="value"
-        show-action
-        label="地址"
-        placeholder="请输入搜索关键词"
-        @search="onSearch"
+      <van-button icon="plus" type="primary" block @click="addFriend"
+        >添加好友</van-button
       >
-        <template #action>
-          <div @click="onClickButton">搜索</div>
-        </template>
-      </van-search>
-
-      <van-pull-refresh
-        v-if="!newFriendsPage"
-        v-model="refreshing"
-        @refresh="onRefresh"
+      <van-dialog
+        :show="showDialog"
+        :before-close="beforeClose"
+        title="添加好友"
+        show-cancel-button
       >
-        <van-list
-          :loading="loading"
-          :finished="finished"
-          finished-text="没有更多了"
-          @load="onLoad"
-        >
-          <FriendSetting
-            v-for="item in list"
-            :key="item"
-            :friendInfo="item"
-            @refresh="onRefresh"
-          ></FriendSetting>
-        </van-list>
-      </van-pull-refresh>
+        <van-cell-group inset>
+          <van-field
+            v-model="newFriendNickName"
+            name="对方昵称"
+            label="对方昵称"
+            placeholder="请务必正确填写"
+            :rules="[{ required: true, message: '请输入好友昵称' }]"
+          />
+          <van-field
+            v-model="newFriendNotes"
+            rows="2"
+            autosize
+            type="textarea"
+            maxlength="20"
+            placeholder="请输入申请信息"
+            show-word-limit
+          />
+        </van-cell-group>
+      </van-dialog>
+      <van-divider
+        :style="{ color: 'grey', borderColor: 'grey', padding: '0 16px' }"
+        >以下为您收到的好友申请</van-divider
+      >
+      <van-list>
+        <span class="tips">（向左滑动可选择操作）</span>
+        <NewFriendRequest
+          v-for="item in friendReq"
+          :key="item"
+          :info="item"
+        ></NewFriendRequest>
+      </van-list>
     </div>
 
     <!-- 好友列表 -->
@@ -72,16 +81,20 @@
 </template>
   
   <script>
-import { onMounted, reactive, ref, toRefs } from "vue";
+import { onMounted, reactive, ref, toRefs, watch, toRaw } from "vue";
 import { useRouter } from "vue-router";
 import { Toast } from "vant";
 import axios from "../utils/axios";
 import router from "../router/index";
 import FriendSetting from "../components/FriendSetting.vue";
+import { checkFriendRequest } from "../tools/checkfriendrequest";
+import NewFriendRequest from "../components/NewFriendRequest.vue";
+import { type } from "os";
 export default {
   name: "Friends",
   components: {
     FriendSetting,
+    NewFriendRequest,
   },
   setup() {
     const router = useRouter();
@@ -96,25 +109,82 @@ export default {
 
       // 好友申请
       newFriendsPage: false,
-      Searchval: "",
-      isSearch: false,
+      newFriendNickName: "",
+      newFriendNotes: "",
+      showDialog: false,
+      show: false,
+      newMark: "",
+      //newFriends: [],
     });
 
-    // 获取好友申请
-    // 取消搜索
-    const onCancel = () => {};
+    // 检查好友请求 有的话显示小红点
+    const friendReq = ref([]);
+    const dot = ref(false);
+    const changDotState = () => {
+      checkFriendRequest();
+      friendReq.value = JSON.parse(localStorage.getItem("friendReq"));
+      dot.value = friendReq.value.length === 0 ? false : true;
+    };
+    // 显示小红点
+    onMounted(() => {
+      changDotState();
+      /* getFriendReq(); */
+    });
 
-    // 搜索新好友
-    const onSearch = () => {};
+    // 获取好友请求
+    /* const getFriendReq = async () => {
+      const { data } = await axios.get("/HNBC/friend/getrequest");
+      const arr = Object.entries(data);
+      for (let i = 0; i < arr.length; i++) {
+        state.newFriends.push({
+          nickname: arr[i][0],
+          info: arr[i][1],
+        });
+      }
+    }; */
+
+    //阻止关闭弹框
+    const beforeClose = async (action) => {
+      if (action === "confirm") {
+        if (state.newFriendNickName.trim() !== "") {
+          const data = await axios.post("/HNBC/friend/request", {
+            requestnickname: state.newFriendNickName.trim(),
+            notes: state.newFriendNotes.trim(),
+          });
+          Toast.success(data.msg);
+          state.newFriendNickName = "";
+          state.newFriendNotes = "";
+          state.showDialog = false;
+          return true;
+        } else {
+          Toast.fail("无效昵称");
+          state.newFriendNickName = "";
+          return false;
+        }
+      } else {
+        state.newFriendNickName = "";
+        state.newFriendNotes = "";
+        state.showDialog = false;
+        return true;
+      }
+    };
+    // 添加新好友
+    const addFriend = () => {
+      state.showDialog = true;
+    };
 
     //查看好友申请页面
     const newfriend = () => {
       state.newFriendsPage = !state.newFriendsPage;
+      if (!state.newFriendsPage) {
+        onRefresh();
+      }
       Toast({
         message: state.newFriendsPage ? "好友申请" : "好友列表",
         position: "bottom",
         duration: 1000,
       });
+      changDotState()
     };
 
     // 获取好友列表
@@ -169,6 +239,9 @@ export default {
       router.back();
     };
 
+    watch(friendReq, (newVal) => {
+      //changDotState();
+    });
     return {
       ...toRefs(state),
       onLoad,
@@ -176,8 +249,12 @@ export default {
       newfriend,
       back,
 
-      onSearch,
-      onCancel,
+      addFriend,
+      friendReq,
+      dot,
+      changDotState,
+      beforeClose,
+      /* getFriendReq, */
     };
   },
 };
@@ -207,5 +284,9 @@ export default {
   background-color: #f5f5f5;
   padding: 10px;
   // padding-bottom: 50px;
+}
+.tips{
+  font-size: 0.2rem;
+  margin-bottom: 0.1rem;
 }
 </style>
