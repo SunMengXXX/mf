@@ -8,7 +8,7 @@
     <van-search
       left-icon=""
       autofocus
-      v-model="value"
+      v-model="searchVal"
       v-if="search"
       show-action
       placeholder="请输入需要搜索的账本名称关键词"
@@ -62,7 +62,7 @@ export default {
   },
   setup() {
     // 搜索
-    const value = ref("");
+    const searchVal = ref("");
     const onSearch = (val) => showRes(val);
     const onCancel = () => (search.value = false);
     // 搜索v-if条件
@@ -145,7 +145,7 @@ export default {
       sort,
       refreshdisabled,
 
-      value,
+      searchVal,
       onSearch,
       onCancel,
       search,

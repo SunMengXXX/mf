@@ -3,7 +3,7 @@
     <div>
       <!-- 上方导航栏 -->
       <van-nav-bar
-        :title="isSearch ? '好友申请' : '好友列表'"
+        :title="newFriendsPage ? '好友申请' : '好友列表'"
         @click-left="back"
         left-text="返回"
         left-arrow
@@ -14,9 +14,21 @@
       </van-nav-bar>
     </div>
     <!-- 好友申请 -->
-    <div>
+    <div v-if="newFriendsPage">
+      <van-search
+        v-model="value"
+        show-action
+        label="地址"
+        placeholder="请输入搜索关键词"
+        @search="onSearch"
+      >
+        <template #action>
+          <div @click="onClickButton">搜索</div>
+        </template>
+      </van-search>
+
       <van-pull-refresh
-        v-if="!isSearch"
+        v-if="!newFriendsPage"
         v-model="refreshing"
         @refresh="onRefresh"
       >
@@ -38,7 +50,7 @@
 
     <!-- 好友列表 -->
     <van-pull-refresh
-      v-if="!isSearch"
+      v-if="!newFriendsPage"
       v-model="refreshing"
       @refresh="onRefresh"
     >
@@ -74,19 +86,32 @@ export default {
   setup() {
     const router = useRouter();
     const state = reactive({
+      // 好友列表
       page: 0, // 当前页
       list: [],
       refreshing: false,
       loading: false,
       finished: false,
       gottenPages: 0,
+
+      // 好友申请
+      newFriendsPage: false,
+      Searchval: "",
       isSearch: false,
     });
 
+    // 获取好友申请
+    // 取消搜索
+    const onCancel = () => {};
+
+    // 搜索新好友
+    const onSearch = () => {};
+
+    //查看好友申请页面
     const newfriend = () => {
-      state.isSearch = !state.isSearch;
+      state.newFriendsPage = !state.newFriendsPage;
       Toast({
-        message: state.isSearch ? "好友申请" : "好友列表",
+        message: state.newFriendsPage ? "好友申请" : "好友列表",
         position: "bottom",
         duration: 1000,
       });
@@ -150,6 +175,9 @@ export default {
       onRefresh,
       newfriend,
       back,
+
+      onSearch,
+      onCancel,
     };
   },
 };

@@ -45,10 +45,10 @@ export default {
     );
 
     watch(props, (newVal) => {
-      console.log(toRaw(newVal));
+      /* console.log(toRaw(newVal)); */
       all.value = newVal.all;
       remain.value = newVal.remain;
-      console.log(rate, currentRate);
+      /* console.log(rate, currentRate); */
     });
     return {
       all,
