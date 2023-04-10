@@ -8,9 +8,9 @@
       left-text="返回"
       left-arrow
     >
-      <template #right>
+      <!-- <template #right>
         <i class="iconfont more"/>
-      </template>
+      </template> -->
     </van-nav-bar>
   </div>
 </template>

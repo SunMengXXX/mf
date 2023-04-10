@@ -1,5 +1,9 @@
 <template>
-  <van-popup :show="show" position="bottom" round>
+  <van-popup
+    :show="show"
+    position="bottom"
+    round
+  >
     <div class="add-wrap">
       <header class="header">
         <span class="close" @click="show = false"
@@ -27,7 +31,12 @@
           >
         </div>
       </div>
-      <van-row class="state" v-if="detail.ledgerID !== '-1'" :align="center " :wrap="false">
+      <van-row
+        class="state"
+        v-if="detail.ledgerID !== '-1'"
+        :align="center"
+        :wrap="false"
+      >
         <van-col span="5" class="statetitle">状态</van-col>
         <van-col offset="0" span="19">
           <van-radio-group v-model="checked">
@@ -90,7 +99,6 @@ export default {
     },
   },
   setup(props, ctx) {
-    const id = ref(""); // 外部传进来的账单详情 id
     const shared = ref(false);
     const self = ref(true);
     const checked = ref(1);
@@ -98,6 +106,7 @@ export default {
       show: false, // 显示隐藏添加账单弹窗
       marksVisible: false,
       newMark: "",
+      popupShow: false,
     });
     const detail = reactive({
       ledgerID: "-1", //账本id
@@ -108,11 +117,6 @@ export default {
 
     const toggle = () => {
       state.show = !state.show;
-    };
-
-    // 删除输入框内容
-    const remove = () => {
-      state.ledgerName = state.ledgerName.slice(0, state.ledgerName.length - 1);
     };
 
     // 切换个人还是共享
@@ -142,6 +146,10 @@ export default {
         state.newMark = "";
         Toast.success(result.msg);
         ctx.emit("refresh");
+
+        
+        //账本切换功能!!!
+
       } else {
         const params = {
           ledgerid: detail.ledgerID,
@@ -152,9 +160,12 @@ export default {
           state: checked.value === "1" ? "进行中" : "已结束",
         };
         const result = await axios.post("/HNBC/ledger/updateledger", params);
-        
+
         Toast.success(result.msg);
         ctx.emit("refresh");
+        
+        //账本切换功能!!!
+
       }
     };
     const unsetMark = () => {
@@ -170,22 +181,20 @@ export default {
     };
 
     watch(props, (newVal) => {
-      props = newVal;
-      detail.ledgerID = props.detail.ledgerID;
-      detail.ledgerName = props.detail.ledgerName;
-      detail.ledgerType = props.detail.isShared === "YES" ? "shared" : "self";
-      detail.marks = props.detail.marks;
+      detail.ledgerID = newVal.detail.ledgerID;
+      detail.ledgerName = newVal.detail.ledgerName;
+      detail.ledgerType = newVal.detail.isShared === "YES" ? "shared" : "self";
+      detail.marks = newVal.detail.marks;
       state.newMark = detail.marks;
-      checked.value = props.detail.ledgerState==="进行中" ? '1':'2'
-      shared.value = props.detail.isShared === "YES" ? true : false;
-      self.value = props.detail.isShared === "YES" ? false : true;
-      console.log(props.detail)
+      checked.value = newVal.detail.ledgerState === "进行中" ? "1" : "2";
+      shared.value = newVal.detail.isShared === "YES" ? true : false;
+      self.value = newVal.detail.isShared === "YES" ? false : true;
     });
+
     return {
       ...toRefs(state),
       detail,
       toggle,
-      remove,
       changeType,
       addBill,
       shared,
@@ -346,12 +355,12 @@ export default {
     font-size: 0.2rem;
     padding-left: 1rem;
   }
-  .statetitle{
+  .statetitle {
     font-size: 0.37333rem;
-    color:#646566;
+    color: #646566;
     padding-left: 0.42667rem;
-    display:flex;/*实现垂直居中*/
-    align-items:center;/*实现水平居中*/
+    display: flex; /*实现垂直居中*/
+    align-items: center; /*实现水平居中*/
   }
 }
 </style>

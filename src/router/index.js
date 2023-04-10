@@ -60,6 +60,16 @@ const router = createRouter({
       path: '/info',
       name: 'Info',
       component: () => import(/* webpackChunkName: "Info" */ '../views/Info.vue')
+    },
+    {
+      path: '/friends',
+      name: 'Friends',
+      component: () => import(/* webpackChunkName: "Info" */ '../views/Friends.vue')
+    },
+    {
+      path: '/info',
+      name: 'Info',
+      component: () => import(/* webpackChunkName: "Info" */ '../views/Info.vue')
     }
   ]
 })

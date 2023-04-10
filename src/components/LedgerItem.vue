@@ -1,5 +1,5 @@
 <template>
-  <div class="carditem">
+  <div class="item">
     <span>状态:{{ details.ledgerState || "未开始   " }}</span>
     <span>创建日期:{{ details.createTime || "1970-01-01 00:00:00" }}</span>
     <van-cell-group inset>
@@ -19,8 +19,14 @@
         round
         fit="cover"
         src="https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg"
+        @click="modifySharers"
       />
-      <van-icon name="add-o" size="1rem" v-if="details.isShared==='YES'" @click='modifySharers'/>
+      <van-icon
+        name="add-o"
+        size="1rem"
+        v-if="details.isShared === 'YES'"
+        @click="modifySharers"
+      />
     </div>
     <div class="function-tabber">
       <span @click="setting"
@@ -30,7 +36,12 @@
       <span><van-icon name="balance-o" size="0.3rem" /> 总预算</span>
       <span><van-icon name="after-sale" size="0.3rem" /> 总支出</span>
     </div>
-    <AddLedger ref="ModifyRef" :detail="details" @refresh="onRefresh"></AddLedger>
+    <AddLedger
+      ref="ModifyRef"
+      :detail="details"
+      @refresh="onRefresh"
+    ></AddLedger>
+    <AddSharers class="add" :detail="details" ref="AddSharersRef"></AddSharers>
   </div>
 </template>
 
@@ -38,8 +49,9 @@
 import { computed, onMounted, reactive, toRefs, watch } from "vue";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
-import { showToast } from "vant";
-import AddLedger from "../components/AddLedger.vue";
+import { showToast, Toast } from "vant";
+import AddLedger from "./AddLedger.vue";
+import AddSharers from "./AddSharers.vue";
 import axios from "../utils/axios";
 export default {
   name: "LedgerItem",
@@ -48,12 +60,18 @@ export default {
       type: Object,
       default: {},
     },
+    refreshdisabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   components: {
     AddLedger,
+    AddSharers,
   },
   setup(props) {
     const router = useRouter();
+    const refreshdisabled = ref(null);
     const state = reactive({
       details: {
         // 从外部获取的
@@ -72,15 +90,20 @@ export default {
       },
       modify: ref(true),
     });
-    // 修改账单数据
+    // 修改账本数据
     const ModifyRef = ref(null);
+    // 修改账本成员
+    const AddSharersRef = ref(null);
+
     // 从props获取账单ID
     state.details.ledgerID = props.ledgers.ledgerid;
     state.details.isShared = props.ledgers.isshared;
     state.details.isOwner = props.ledgers.isowner;
     // 通过账单ID查询详细数据
     const getLedger = async () => {
-      const { data } = await axios.get(`/HNBC/ledger/single/${state.details.ledgerID}`);
+      const { data } = await axios.get(
+        `/HNBC/ledger/single/${state.details.ledgerID}`
+      );
       state.details.ledgerName = data.ledgername;
       state.details.createTime = data.createtime;
       state.details.marks = data.marks;
@@ -89,18 +112,25 @@ export default {
       state.details.ledgerState = data.state;
     };
 
-    const modifySharers=()=>{
-      
-    }
+    const modifySharers = () => {
+      AddSharersRef.value.toggle();
+      props.reRefreshdisabled = true;
+      /* console.log(props.reRefreshdisabled); */
+    };
 
     const setting = () => {
       addLedger();
     };
     const addLedger = () => {
+      props.reRefreshdisabled = true;
       ModifyRef.value.toggle();
+      /* console.log(props.reRefreshdisabled); */
     };
     watch(props.ledgers, (newVal) => {
       props.ledgers = newVal;
+    });
+    watch(props.refreshdisabled, (newVal) => {
+      console.log(newVal);
     });
     onMounted(() => {
       getLedger();
@@ -110,14 +140,16 @@ export default {
       setting,
       getLedger,
       ModifyRef,
-      modifySharers
+      modifySharers,
+      AddSharersRef,
+      refreshdisabled,
     };
   },
 };
 </script>
 <style lang='less'>
 @import url("../config/custom.less");
-.carditem {
+.item {
   margin-top: 10px;
   margin-bottom: 10px;
   box-shadow: 0px 0px 4px 0px rgb(213, 210, 210);
@@ -129,4 +161,19 @@ export default {
     border-top: 1px solid @primary-bg;
   }
 }
+/* .add {
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  width: 40px;
+  border-radius: 50%;
+  border: 1px solid #e9e9e9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  background-color: #fff;
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+  color: @primary;
+} */
 </style>

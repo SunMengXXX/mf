@@ -25,24 +25,26 @@
     >
     <div class="sort" v-if="!search">
       <div class="type">
-        <span @click="sort('createtime')"><van-icon name="fire-o" />时间</span>
-        <span @click="sort('heat')"><van-icon name="clock-o" />热度</span>   
+        <span @click="changeType('createtime')"
+          ><van-icon name="fire-o" />时间</span
+        >
+        <span @click="changeType('heat')"><van-icon name="clock-o" />热度</span>
       </div>
     </div>
     <div class="home">
       <div class="content-wrap">
-        <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
+        <van-pull-refresh v-model="refreshing" :disabled='refreshdisabled' @refresh="onRefresh">
           <van-list
             :loading="loading"
             :finished="finished"
             finished-text="没有更多了"
             @load="onLoad"
           >
-            <LedgerItem v-for="item in list" :ledgers="item" :key="item" />
+            <LedgerItem v-for="item in list" :ledgers="item" :refreshdisabled="refreshdisabled" :key="item" />
           </van-list>
         </van-pull-refresh>
       </div>
-      <AddLedger ref="AddLedgerRef" @refresh="onRefresh" />
+      <AddLedger calss="add" ref="AddLedgerRef" :refreshdisabled="refreshdisabled" @refresh="onRefresh" />
     </div>
   </div>
 </template>
@@ -65,8 +67,8 @@ export default {
     const onCancel = () => (search.value = false);
     // 搜索v-if条件
     const search = ref(false);
-
     const AddLedgerRef = ref(null);
+    const refreshdisabled = ref(false);
     const state = reactive({
       page: 1,
       totalPage: 0,
@@ -76,9 +78,8 @@ export default {
       refreshing: false,
       currentSelect: {},
       currentTime: dayjs().format("YYYY-MM"),
+      sortType: "createtime",
     });
-
-    
 
     const getBillList = async (uri) => {
       const { data } = await axios.get(uri);
@@ -87,13 +88,17 @@ export default {
         state.refreshing = false;
       }
       state.loading = false;
-      state.list = data;
-      state.totalPage += data.length;
+      state.list = state.list.concat(data);
+
+      // totalPage罪魁祸首！！！！！！！！！！搞了半天是你小子
+      state.totalPage += 1;
+
+      /* console.log(state.page, state.totalPage); */
       if (state.page >= state.totalPage) state.finished = true;
     };
 
-    const sort = (type= "createtime") => {
-      if (type === "createtime") {
+    const sort = () => {
+      if (state.sortType === "createtime") {
         getBillList("/HNBC/ledger/allbytime");
       } else {
         getBillList("/HNBC/ledger/allbynums");
@@ -112,11 +117,19 @@ export default {
       state.finished = false;
       // 页数重制
       state.page = 1;
+      state.totalPage = 0;
       // 重新加载数据
       // 将 loading 设置为 true，表示处于加载状态
       state.refreshing = true;
       state.loading = true;
       onLoad();
+    };
+    const changeType = (type) => {
+      if (type === state.sortType) {
+        return;
+      }
+      state.sortType = type;
+      onRefresh();
     };
     // 添加账单弹窗开关
     const addLedger = () => {
@@ -128,7 +141,9 @@ export default {
       onLoad,
       onRefresh,
       addLedger,
+      changeType,
       sort,
+      refreshdisabled,
 
       value,
       onSearch,
@@ -206,7 +221,6 @@ export default {
     bottom: 100px;
     right: 30px;
     width: 40px;
-    height: 40px;
     border-radius: 50%;
     border: 1px solid #e9e9e9;
     display: flex;
@@ -217,5 +231,8 @@ export default {
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
     color: @primary;
   }
+}
+.view {
+  overflow: hidden;
 }
 </style>

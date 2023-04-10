@@ -13,7 +13,7 @@
     <Circle :all="allBudget" :remain="remainBudget" ></Circle>
     <van-grid class="grid" direction="horizontal" :column-num="2">
       <van-grid-item icon="bill-o" text="账本" />
-      <van-grid-item icon="friends-o" text="好友" />
+      <van-grid-item icon="friends-o" dot text="好友" @click="friendsList" />
     </van-grid>
     <div class="content">
       <van-cell icon="user-circle-o" to="/info" title="修改信息" is-link />
@@ -84,6 +84,9 @@ export default {
       remainBudget.value = remain;
     };
 
+    const friendsList = () =>{
+      router.push({ path: "/friends" })
+    }
     // 退出登录
     const logout = async () => {
       const data = await axios.get("/HNBC/user/logout");
@@ -101,7 +104,8 @@ export default {
       ...toRefs(state),
       logout,
       allBudget,
-      remainBudget
+      remainBudget,
+      friendsList
     };
   },
 };
