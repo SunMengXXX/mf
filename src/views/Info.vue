@@ -63,15 +63,15 @@ export default {
 
     //提交信息
     const onSubmit = async () => {
-      axios.defaults.headers.post['Content-Type'] = 'multipart/form-data'
+      axios.defaults.headers.post["Content-Type"] = "multipart/form-data";
       /* console.log(axios.defaults.headers); */
-      const icon = JSON.stringify(avatar.value[0].content);
-      const formdata = new FormData()
-      formdata.append('nickname',state.nickName)
-      formdata.append('age',state.age)
-      formdata.append('sex',state.sex)
-      formdata.append('icon',icon)
-      
+      const icon = JSON.stringify(avatar.value ? avatar.value[0].content : "");
+      const formdata = new FormData();
+      formdata.append("nickname", state.nickName);
+      formdata.append("age", state.age);
+      formdata.append("sex", state.sex);
+      formdata.append("icon", icon);
+
       /* const userInfo = {
         nickname: state.nickName,
         age: state.age,
@@ -79,12 +79,11 @@ export default {
         icon: icon,
       }; */
       const data = await axios.post("/HNBC/user/saveuserinfo", formdata);
-      console.log(data)
-      axios.defaults.headers.post['Content-Type'] = 'application/json'
-      
-      if(data.state === '200'){
+      axios.defaults.headers.post["Content-Type"] = "application/json";
+      Toast.success(data.msg);
+      if (data.state === "200") {
         setTimeout(() => {
-          router.replace('/user');
+          router.replace("/user");
         }, 1000);
       }
     };

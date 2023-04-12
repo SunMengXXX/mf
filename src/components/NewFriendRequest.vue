@@ -1,8 +1,5 @@
 <template>
   <van-swipe-cell class="cellbox" v-if="show">
-    <template #left>
-      <van-button square type="primary" text="选择" />
-    </template>
     <van-cell :border="false" :title="friendName" :value="notes" />
     <template #right>
       <van-button square type="success" text="同意" @click="handle('accept')" />

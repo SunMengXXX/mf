@@ -1,9 +1,5 @@
 <template>
-  <van-popup
-    :show="show"
-    position="bottom"
-    round
-  >
+  <van-popup :show="show" position="bottom" round @touchmove.stop>
     <div class="add-wrap">
       <header class="header">
         <span class="close" @click="show = false"
@@ -16,7 +12,7 @@
 
       <van-field v-model="detail.ledgerName" label="账本名称" placeholder="" />
 
-      <div class="filter">
+      <div class="filter" v-if="detail.ledgerID === '-1'">
         <span>账本类型</span>
         <div class="type">
           <span
@@ -117,6 +113,13 @@ export default {
 
     const toggle = () => {
       state.show = !state.show;
+      if (state.show) {
+        document.body.style.overflow = "hidden"; // 弹层显示时
+        document.body.style.position = "relative";
+      } else {
+        document.body.style.overflow = "auto"; // 弹层不显示时
+        document.body.style.position = null;
+      }
     };
 
     // 切换个人还是共享
@@ -147,9 +150,7 @@ export default {
         Toast.success(result.msg);
         ctx.emit("refresh");
 
-        
         //账本切换功能!!!
-
       } else {
         const params = {
           ledgerid: detail.ledgerID,
@@ -159,13 +160,12 @@ export default {
           sharers: [],
           state: checked.value === "1" ? "进行中" : "已结束",
         };
-        const result = await axios.post("/HNBC/ledger/updateledger", params);
+        const result = await axios.put("/HNBC/ledger/updateledger", params);
 
         Toast.success(result.msg);
         ctx.emit("refresh");
-        
-        //账本切换功能!!!
 
+        //账本切换功能!!!
       }
     };
     const unsetMark = () => {

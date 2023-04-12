@@ -2,7 +2,7 @@
   <div>
     <van-nav-bar title="账本" class="">
       <template #left>
-        <van-icon name="search" size="0.6rem" @click="search = !search" />
+        <van-icon name="search" size="0.6rem" @click="changeState" />
       </template>
     </van-nav-bar>
     <van-search
@@ -11,7 +11,7 @@
       v-model="searchVal"
       v-if="search"
       show-action
-      placeholder="请输入需要搜索的账本名称关键词"
+      placeholder="请输入账本名称并按下回车"
       @search="onSearch"
       @cancel="onCancel"
     />
@@ -33,45 +33,41 @@
     </div>
     <div class="home">
       <div class="content-wrap">
-        <van-pull-refresh v-model="refreshing" :disabled='refreshdisabled' @refresh="onRefresh">
+        <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
           <van-list
             :loading="loading"
             :finished="finished"
             finished-text="没有更多了"
             @load="onLoad"
           >
-            <LedgerItem v-for="item in list" :ledgers="item" :refreshdisabled="refreshdisabled" :key="item" />
+            <LedgerItem
+              v-for="item in list"
+              :ledgers="item"
+              :key="item"
+              @refresh="sort"
+            />
           </van-list>
         </van-pull-refresh>
       </div>
-      <AddLedger calss="add" ref="AddLedgerRef" :refreshdisabled="refreshdisabled" @refresh="onRefresh" />
+      <AddLedger calss="add" ref="AddLedgerRef" @refresh="onRefresh" />
     </div>
   </div>
 </template>
   
   <script>
-import { reactive, ref, toRefs } from "vue";
+import { onMounted, reactive, ref, toRefs } from "vue";
 import LedgerItem from "../components/LedgerItem.vue";
 import AddLedger from "../components/AddLedger.vue";
 import axios from "../utils/axios";
 import dayjs from "dayjs";
+import { Toast } from "vant";
 export default {
   components: {
     LedgerItem,
     AddLedger,
   },
   setup() {
-    // 搜索
-    const searchVal = ref("");
-    const onSearch = (val) => showRes(val);
-    const onCancel = () => (search.value = false);
-    // 搜索v-if条件
-    const search = ref(false);
-    const AddLedgerRef = ref(null);
-    const refreshdisabled = ref(false);
     const state = reactive({
-      page: 1,
-      totalPage: 0,
       list: [],
       loading: false,
       finished: false,
@@ -80,21 +76,57 @@ export default {
       currentTime: dayjs().format("YYYY-MM"),
       sortType: "createtime",
     });
+    // 搜索
+    const searchVal = ref("");
+    // 搜索v-if条件
+    const search = ref(false);
+    const AddLedgerRef = ref(null);
+
+    const changeState = () => {
+      search.value = !search.value;
+      if (!search.value) {
+        onCancel();
+      }
+    };
+    const onSearch = async () => {
+      if (
+        searchVal.value === null ||
+        searchVal.value === "" ||
+        searchVal.value.trim() === ""
+      ) {
+        Toast.fail("输入信息为空");
+      } else {
+        state.list = [];
+        const { data } = await axios.get("/HNBC/select/ledgerbyname", {
+          ledgername: searchVal.value,
+        });
+        if (data) {
+          state.list = state.list.concat(data);
+          console.log(state.list);
+        }else{
+          Toast.fail('无法查询到有关账本')
+        }
+      }
+    };
+    const onCancel = () => {
+      searchVal.value = "";
+      search.value = false;
+      onRefresh()
+    };
 
     const getBillList = async (uri) => {
       const { data } = await axios.get(uri);
       if (state.refreshing) {
         state.list = [];
-        state.refreshing = false;
+        setTimeout(() => {
+          state.refreshing = false;
+        }, 200);
       }
+      state.loading = true;
+      state.list = data;
+
       state.loading = false;
-      state.list = state.list.concat(data);
-
-      // totalPage罪魁祸首！！！！！！！！！！搞了半天是你小子
-      state.totalPage += 1;
-
-      /* console.log(state.page, state.totalPage); */
-      if (state.page >= state.totalPage) state.finished = true;
+      state.finished = true;
     };
 
     const sort = () => {
@@ -106,22 +138,17 @@ export default {
     };
 
     const onLoad = () => {
-      if (!state.refreshing && state.page < state.totalPage) {
-        state.page = state.page + 1;
-      }
       sort();
     };
 
     const onRefresh = () => {
       // 清空列表数据
       state.finished = false;
-      // 页数重制
-      state.page = 1;
-      state.totalPage = 0;
       // 重新加载数据
       // 将 loading 设置为 true，表示处于加载状态
       state.refreshing = true;
       state.loading = true;
+      //console.log("refresh被调用");
       onLoad();
     };
     const changeType = (type) => {
@@ -135,6 +162,7 @@ export default {
     const addLedger = () => {
       AddLedgerRef.value.toggle();
     };
+
     return {
       ...toRefs(state),
       AddLedgerRef,
@@ -143,12 +171,12 @@ export default {
       addLedger,
       changeType,
       sort,
-      refreshdisabled,
 
       searchVal,
       onSearch,
       onCancel,
       search,
+      changeState,
     };
   },
 };
@@ -215,21 +243,6 @@ export default {
     background-color: #f5f5f5;
     padding: 10px;
     // padding-bottom: 50px;
-  }
-  .add {
-    position: fixed;
-    bottom: 100px;
-    right: 30px;
-    width: 40px;
-    border-radius: 50%;
-    border: 1px solid #e9e9e9;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    background-color: #fff;
-    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
-    color: @primary;
   }
 }
 .view {

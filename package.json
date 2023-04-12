@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
+    "console": "^0.7.2",
     "core-js": "^3.6.5",
     "dayjs": "^1.9.8",
     "echarts": "^5.0.0",

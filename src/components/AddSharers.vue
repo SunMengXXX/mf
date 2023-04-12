@@ -1,30 +1,72 @@
 <template>
-  <van-popup :show="show" position="bottom" round>
+  <van-popup
+    class="add"
+    :show="show"
+    position="bottom"
+    lock-scroll
+    overlay-style="overlay"
+    round
+    @touchmove.stop
+    @close="beforeClose"
+  >
     <div class="add-wrap">
-      <header class="header">
+      <header class="header" title="共享成员">
         <span class="close" @click="show = false"
           ><van-icon name="cross"
         /></span>
-        <van-button class="add-btn" type="primary" size="small" @click="addBill"
-          >确定</van-button
-        >
       </header>
-      <van-list
-        :loading="loading"
-        :finished="finished"
-        finished-text="没有更多了"
-        @load="onLoad"
-      >
-        <van-cell v-for="item in list" :key="item" :title="item" />
-      </van-list>
+      <div v-if="!isShared">
+        <van-divider
+          :style="{ color: 'grey', borderColor: 'grey', padding: '0 16px' }"
+          >该账本无法添加更多成员了</van-divider
+        >
+      </div>
+      <div v-if="isShared">
+        <span class="tips">（向左滑动可选择操作）</span>
+        <van-list>
+          <van-swipe-cell class="cellbox" v-for="item in list" :key="item">
+            <van-cell :title="item" value="已共享" />
+            <template #right>
+              <van-button
+                square
+                type="danger"
+                text="删除"
+                @click="handle('delete', item)"
+              />
+            </template>
+          </van-swipe-cell>
+        </van-list>
+        <div>
+          <van-divider
+            :style="{ color: 'grey', borderColor: 'grey', padding: '0 16px' }"
+            >添加更多账本成员</van-divider
+          >
+          <van-list @load="onload" :finished="finished">
+            <van-swipe-cell
+              class="cellbox"
+              v-for="item in unsharedList"
+              :key="item"
+            >
+              <van-cell :title="item" value="未共享" />
+              <template #right>
+                <van-button
+                  square
+                  type="success"
+                  text="添加"
+                  @click="handle('add', item)"
+                />
+              </template>
+            </van-swipe-cell>
+          </van-list>
+        </div>
+      </div>
     </div>
   </van-popup>
 </template>
 
 <script>
-import { reactive, toRefs, onMounted, watch, ref } from "vue";
+import { reactive, toRefs, watch, ref, onMounted, computed } from "vue";
 import dayjs from "dayjs";
-import { typeMap } from "../utils";
 import axios from "../utils/axios";
 import { Toast } from "vant";
 export default {
@@ -38,72 +80,123 @@ export default {
   setup(props, ctx) {
     const id = ref("-1"); //账本ID
     const list = ref([]); //账本用户列表
-    const loading = ref(false);
-    const finished = ref(false);
     const state = reactive({
+      isShared: false,
       show: false, // 显示隐藏添加账单弹窗
+      page: 0,
+      finished: false,
+      friendsList: [],
     });
+    const beforeClose = () => {
+      ctx.emit("refresh");
+    };
+
     // 显示或者隐藏popup
     const toggle = () => {
       state.show = !state.show;
     };
-
-    const addBill = async () => {
-      if (!state.amount) {
-        Toast.fail("请输入具体金额");
-        return;
+    // 计算未分享的好友列表
+    const unsharedList = computed(() => {
+      const arr = [];
+      for (let i = 0; i < state.friendsList.length; i++) {
+        const judge = false;
+        for (let j = 0; j < list.value.length; j++) {
+          if (state.friendsList[i].friendname === list.value[j]) {
+            judge = true;
+            break;
+          }
+        }
+        if (judge === false) {
+          arr.push(state.friendsList[i].friendname);
+        } else continue;
       }
-      const params = {
-        amount: Number(state.amount).toFixed(2),
-        type_id: state.currentType.id,
-        type_name: state.currentType.name,
-        date: dayjs(state.date).unix() * 1000,
-        pay_type: state.payType == "expense" ? 1 : 2,
-        remark: state.remark || "",
-      };
-      if (id) {
-        params.id = id;
-        // 如果有 id 需要调用详情更新接口
-        const result = await axios.post("/bill/update", params);
-        state.show = false;
-        Toast.success("修改成功");
-        ctx.emit("refresh");
+      return arr;
+    });
+    const handle = async (option, item) => {
+      if (option === "add") {
+        const data = await axios.put("/HNBC/ledger/addsharer", {
+          ledgerid: id.value,
+          nickname: item,
+        });
+        Toast.success(data.msg);
       } else {
-        const result = await axios.post("/bill/add", params);
-        state.amount = "";
-        state.payType = "expense";
-        state.currentType = state.expense[0];
-        state.show = false;
-        state.date = new Date();
-        state.remark = "";
-        Toast.success("添加成功");
-        ctx.emit("refresh");
+        const data = await axios.put("/HNBC/ledger/deletesharer", {
+          ledgerid: id.value,
+          nickname: item,
+        });
+        if (data.state === "404") {
+          Toast.fail(data.msg);
+        } else {
+          Toast.success(data.msg);
+        }
       }
+      onRefresh();
+    };
+    // 获取好友列表
+    const onRefresh = () => {
+      list.value = [];
+      state.friendsList = [];
+      state.finished = false;
+      state.page = 0;
+      onload();
     };
 
-    const onLoad = () => {
-      // 异步更新数据
-      // setTimeout 仅做示例，真实场景中一般为 ajax 请求
+    //加载时调用
+    const onload = () => {
+      getSharedList();
+      getFriendList();
     };
+
+    const getFriendList = async () => {
+      while (!state.finished) {
+        try {
+          state.page++;
+          const { data } = await axios.get(`/HNBC/friend/get/${state.page}`);
+          if (data.length === 0 || data.length < 10 || data === null) {
+            state.finished = true;
+          }
+          state.friendsList = state.friendsList.concat(data);
+        } catch (e) {
+          state.finished = true;
+        }
+      }
+    };
+    const getSharedList = async () => {
+      if (id.value !== "-1") {
+        const { data } = await axios.get(`/HNBC/ledger/single/${id.value}`);
+        list.value = data.sharers;
+      }
+    };
+    //开启深度监视
     watch(props, (newVal) => {
       id.value = newVal.detail.ledgerID;
-      list.value = newVal.detail.sharers;
+      //list.value = newVal.detail.sharers;
+      state.isShared = newVal.detail.isShared === "YES" ? true : false;
+    });
+    watch(unsharedList, (newVal) => {
+      //console.log(newVal);
+    });
+    watch(state.friendsList, (newVal) => {
+      console.log(newVal);
     });
     return {
       ...toRefs(state),
       toggle,
-      addBill,
 
       list,
-      onLoad,
-      loading,
-      finished,
+      handle,
+      getFriendList,
+      onload,
+      unsharedList,
+      beforeClose,
+      getSharedList,
+      onRefresh,
     };
   },
 };
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
 @import url("../config/custom.less");
 .add-wrap {
   padding-top: 12px;
@@ -265,5 +358,8 @@ export default {
   .van-dialog__confirm {
     color: @primary;
   }
+}
+.overlay {
+  background-color: rgba(0, 0, 0, 0.5);
 }
 </style>

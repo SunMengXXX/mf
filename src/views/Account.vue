@@ -8,7 +8,7 @@
     <van-dialog
       class="modal-pass"
       :show="visible"
-      @confirm="handleOk"
+      :before-close="beforeClose"
       title="修改密码"
       show-cancel-button
     >
@@ -42,6 +42,7 @@ import { useRouter } from "vue-router";
 import { Dialog, Toast } from "vant";
 import Header from "../components/Header.vue";
 import axios from "../utils/axios";
+import { validate } from "json-schema";
 /* import { showConfirmDialog } from "vant"; */
 export default {
   name: "Account",
@@ -56,20 +57,44 @@ export default {
       newPass: "",
       newPass2: "",
     });
-
-    // 修改密码
-    const handleOk = async () => {
-      if (state.newPass != state.newPass2) {
-        Toast.fail("新密码不一致");
-        return;
+    // 异步关闭弹框
+    const beforeClose = async (action) => {
+      if (action === "confirm") {
+        if (state.newPass != state.newPass2) {
+          Toast.fail("密码不一致");
+          return false;
+        } else if (state.newPass === state.oldPass) {
+          Toast.fail("新密码不能与原密码相同");
+          return false;
+        } else if (
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[~!@&%#_])[a-zA-Z0-9~!@&%#_]{8,16}$/.test(
+            state.newPass
+          ) === false
+        ) {
+          Toast.fail("密码必须包含大小写、数字、特殊字符，且在8到16位");
+          return false;
+        } else {
+          const data = await axios.put("/HNBC/user/updatepassword", {
+            originalpassword: state.oldPass,
+            newpassword: state.newPass,
+          });
+          Toast.success(data.msg);
+          state.oldPass = "";
+          state.newPass = "";
+          state.newPass2 = "";
+          state.visible = false;
+          return true;
+        }
+      } else {
+        state.oldPass = "";
+        state.newPass = "";
+        state.newPass2 = "";
+        state.visible = false;
+        return true;
       }
-      const data = await axios.post("/HNBC/user/updatepassword", {
-        originalpassword: state.oldPass,
-        newpassword: state.newPass,
-      });
-
-      Toast.success(data.msg);
     };
+    // 修改密码
+    const handleOk = async () => {};
 
     // 注销账户
     const close = () => {
@@ -96,7 +121,7 @@ export default {
 
     return {
       ...toRefs(state),
-      handleOk,
+      beforeClose,
       close,
     };
   },

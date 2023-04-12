@@ -30,7 +30,7 @@ export default {
     const active = ref("/home");
 
     const link = (path) => {
-      router.push({ path });
+      router.replace({ path });
       checkFriendRequest();
       friendReq.value = localStorage.getItem("friendReq");
       dot.value = JSON.parse(friendReq.value).length === 0 ? false : true;
@@ -44,7 +44,11 @@ export default {
       active.value = router.currentRoute.value.path;
       checkFriendRequest();
       friendReq.value = localStorage.getItem("friendReq");
-      dot.value = JSON.parse(friendReq.value).length === 0 ? false : true;
+      if (friendReq.value) {
+        dot.value = JSON.parse(friendReq.value).length === 0 ? false : true;
+      } else {
+        dot.value = false;
+      }
     });
 
     router.afterEach(() => {

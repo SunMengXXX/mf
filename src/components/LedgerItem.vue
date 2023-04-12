@@ -36,12 +36,13 @@
       <span><van-icon name="balance-o" size="0.3rem" /> 总预算</span>
       <span><van-icon name="after-sale" size="0.3rem" /> 总支出</span>
     </div>
-    <AddLedger
-      ref="ModifyRef"
+    <AddLedger ref="ModifyRef" :detail="details" v-bind="$attrs"></AddLedger>
+    <AddSharers
+      class="add"
       :detail="details"
-      @refresh="onRefresh"
-    ></AddLedger>
-    <AddSharers class="add" :detail="details" ref="AddSharersRef"></AddSharers>
+      ref="AddSharersRef"
+      v-bind="$attrs"
+    ></AddSharers>
   </div>
 </template>
 
@@ -60,10 +61,7 @@ export default {
       type: Object,
       default: {},
     },
-    refreshdisabled: {
-      type: Boolean,
-      default: false,
-    },
+    refresh: Function,
   },
   components: {
     AddLedger,
@@ -71,7 +69,6 @@ export default {
   },
   setup(props) {
     const router = useRouter();
-    const refreshdisabled = ref(null);
     const state = reactive({
       details: {
         // 从外部获取的
@@ -88,7 +85,7 @@ export default {
         totalExpense: "",
         ledgerState: "",
       },
-      modify: ref(true),
+      //modify: ref(true),
     });
     // 修改账本数据
     const ModifyRef = ref(null);
@@ -115,25 +112,20 @@ export default {
     const modifySharers = () => {
       AddSharersRef.value.toggle();
       props.reRefreshdisabled = true;
-      /* console.log(props.reRefreshdisabled); */
     };
 
     const setting = () => {
       addLedger();
     };
     const addLedger = () => {
-      props.reRefreshdisabled = true;
       ModifyRef.value.toggle();
-      /* console.log(props.reRefreshdisabled); */
     };
-    watch(props.ledgers, (newVal) => {
-      props.ledgers = newVal;
-    });
-    watch(props.refreshdisabled, (newVal) => {
-      console.log(newVal);
-    });
     onMounted(() => {
       getLedger();
+      //onRefresh = props.refresh;
+    });
+    watch(props, (newVal) => {
+      console.log(newVal)
     });
     return {
       ...toRefs(state),
@@ -142,7 +134,6 @@ export default {
       ModifyRef,
       modifySharers,
       AddSharersRef,
-      refreshdisabled,
     };
   },
 };

@@ -13,7 +13,12 @@
     <Circle :all="allBudget" :remain="remainBudget"></Circle>
     <van-grid class="grid" direction="horizontal" :column-num="2">
       <van-grid-item icon="bill-o" text="账本" />
-      <van-grid-item icon="friends-o" :dot="dot" text="好友" @click="friendsList" />
+      <van-grid-item
+        icon="friends-o"
+        :dot="dot"
+        text="好友"
+        @click="friendsList"
+      />
     </van-grid>
     <div class="content">
       <van-cell icon="user-circle-o" to="/info" title="修改信息" is-link />
@@ -46,6 +51,7 @@ export default {
         nickName: "",
         registerTime: "",
         sex: "",
+        age: "",
         ledgerCount: null,
         ledgerDay: null,
       }, // 用户信息
@@ -62,7 +68,11 @@ export default {
       getUserBudget();
       checkFriendRequest();
       friendReq.value = localStorage.getItem("friendReq");
-      dot.value = JSON.parse(friendReq.value).length === 0 ? false : true;
+      if (friendReq.value) {
+        dot.value = JSON.parse(friendReq.value).length === 0 ? false : true;
+      } else {
+        dot.value = false;
+      }
     });
 
     // 获取用户信息
@@ -72,10 +82,15 @@ export default {
       state.user.nickName = data.nickname;
       state.user.registerTime = data.create_time;
       state.user.sex = data.sex;
+      state.user.age = data.age;
       state.user.ledgerCount = data.ledgercout;
       state.user.ledgerDay = data.ledgerday;
       state.user.avatar = data.icon;
       localStorage.setItem("user", JSON.stringify(data));
+      console.log(state.user.nickName, state.user.age, state.user.sex);
+      if (!state.user.nickName || !state.user.age || !state.user.sex) {
+        Toast.fail("请您尽快填写个人信息");
+      }
     };
 
     //获取用户总预算
@@ -93,7 +108,11 @@ export default {
     };
 
     const friendsList = () => {
-      router.push({ path: "/friends" });
+      if (state.user.nickName && state.user.age && state.user.sex) {
+        router.push({ path: "/friends" });
+      } else {
+        Toast.fail("完成个人信息后方可使用");
+      }
     };
     // 退出登录
     const logout = async () => {
@@ -102,7 +121,7 @@ export default {
         message: data.msg + "\n即将跳转至登录页面",
         duration: 1000,
       });
-      localStorage.clear;
+      localStorage.clear();
       setTimeout(() => {
         router.push({ path: "/login" });
       }, 1500);
@@ -115,7 +134,7 @@ export default {
       remainBudget,
       friendsList,
       friendReq,
-      dot
+      dot,
     };
   },
 };
