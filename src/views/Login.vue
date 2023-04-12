@@ -215,12 +215,16 @@ export default {
                 pass: state.userPwd,
               });
             }
-            Toast.success(data.msg + "\n即将自动跳转至主页");
-            localStorage.setItem("token", data.data);
-            state.type = "login";
-            setTimeout(() => {
-              router.replace("/");
-            }, 2000);
+            if (data.data) {
+              Toast.success(data.msg + "\n即将自动跳转至主页");
+              localStorage.setItem("token", data.data);
+              setTimeout(() => {
+                router.replace("/");
+              }, 1000);
+            } else {
+              Toast.fail(data.msg);
+              localStorage.setItem("token", null);
+            }
           } else {
             //提交状态为注册
             state.loading = true;
@@ -237,14 +241,13 @@ export default {
                 usercaptcha: state.usercaptcha,
               });
             }
-            console.log(data.data);
             if (data.data) {
               Toast.success(data.msg + "\n即将自动跳转至主页");
               localStorage.setItem("token", data.data);
               state.type = "login";
               setTimeout(() => {
                 router.replace("/");
-              }, 2000);
+              }, 1200);
             } else {
               Toast.fail(data.msg);
               localStorage.setItem("token", null);

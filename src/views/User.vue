@@ -78,6 +78,7 @@ export default {
     // 获取用户信息
     const getUserInfo = async () => {
       const { data } = await axios.get("/HNBC/user/getuserinfo");
+      //console.log(axios.defaults);
       state.user.userID = data.userid;
       state.user.nickName = data.nickname;
       state.user.registerTime = data.create_time;
