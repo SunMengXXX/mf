@@ -8,8 +8,8 @@
       :text="text"
       @load="onload"
     />
-    <span>当月已使用预算{{ all - remain }}</span>
-    <span>当月总预算{{ all }}</span>
+    <span>当月已使用预算{{ (all - remain).toFixed(2) }}</span>
+    <span>当月总预算{{ all.toFixed(2) }}</span>
   </div>
 </template>
 <script>
@@ -26,8 +26,8 @@ export default {
   },
   setup(props) {
     //定义环形进度条
-    const all = ref(9999);
-    const remain = ref(9999);
+    const all = ref(0);
+    const remain = ref(0);
 
     const currentRate = computed(() =>
       all.value > 0 ? remain.value / all.value : 0
@@ -41,7 +41,10 @@ export default {
           }
         : "red";
     const text = computed(
-      () => "已使用\n"+(currentRate.value < 100 ? currentRate.value.toFixed(0) : 100) + "%"
+      () =>
+        "已使用\n" +
+        (currentRate.value < 100 ? currentRate.value.toFixed(0) : 100) +
+        "%"
     );
 
     watch(props, (newVal) => {

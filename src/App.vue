@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import Tabbar from "./components/Tabbar.vue";
+import Tabbar from "./components/PageComponents/Tabbar.vue";
 import { useRouter } from "vue-router";
 import { reactive, toRefs } from "vue";
 export default {

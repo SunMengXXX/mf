@@ -32,7 +32,7 @@
 <script>
 import { onMounted, reactive, ref, toRefs } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Header from '../components/Header.vue'
+import Header from '../components/PageComponents/Header.vue'
 import PopAdd from '../components/PopAdd.vue'
 import { typeMap } from '../utils'
 import axios from '../utils/axios'

@@ -15,11 +15,10 @@
     >
   </van-tabbar>
 </template>
-
 <script>
 import { onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { checkFriendRequest } from "../tools/checkfriendrequest";
+import { checkFriendRequest } from "../../tools/checkfriendrequest";
 export default {
   name: "Tabbar",
   props: {
@@ -69,7 +68,7 @@ export default {
 </script>
 
 <style lang="less">
-@import url("../config/custom.less");
+@import url("../../config/custom.less");
 .van-tabbar-item--active {
   color: @primary!important;
 }

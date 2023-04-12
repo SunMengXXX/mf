@@ -10,8 +10,8 @@
 <script>
 import { toRefs, ref, reactive, onMounted, watch } from "vue";
 import { Toast } from "vant";
-import axios from "../utils/axios";
-import { checkFriendRequest } from "../tools/checkfriendrequest";
+import axios from "../../utils/axios";
+import { checkFriendRequest } from "../../tools/checkfriendrequest";
 export default {
   name: "NewFriendRequest",
   props: {
@@ -55,7 +55,7 @@ export default {
 };
 </script>
 <style lang="less">
-@import url("../config/custom.less");
+@import url("../../config/custom.less");
 .cellbox {
   margin-top: 0.1rem;
 }

@@ -56,8 +56,8 @@
   
   <script>
 import { onMounted, reactive, ref, toRefs } from "vue";
-import LedgerItem from "../components/LedgerItem.vue";
-import AddLedger from "../components/AddLedger.vue";
+import LedgerItem from "../components/LedgerComponents/LedgerItem.vue";
+import AddLedger from "../components/LedgerComponents/AddLedger.vue";
 import axios from "../utils/axios";
 import dayjs from "dayjs";
 import { Toast } from "vant";
@@ -156,7 +156,7 @@ export default {
         return;
       }
       state.sortType = type;
-      onRefresh();
+      onLoad();
     };
     // 添加账单弹窗开关
     const addLedger = () => {

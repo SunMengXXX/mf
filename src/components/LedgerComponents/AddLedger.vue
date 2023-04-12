@@ -84,7 +84,7 @@
 import { reactive, toRefs, ref, watch } from "vue";
 import dayjs from "dayjs";
 
-import axios from "../utils/axios";
+import axios from "../../utils/axios";
 import { Toast } from "vant";
 export default {
   props: {
@@ -210,7 +210,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@import url("../config/custom.less");
+@import url("../../config/custom.less");
 .add-wrap {
   padding-top: 12px;
   height: 15rem;

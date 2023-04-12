@@ -45,7 +45,7 @@
 <script>
 import { toRefs, ref, reactive, onMounted } from "vue";
 import { Dialog, Toast } from "vant";
-import axios from "axios";
+import axios from "../../utils/axios";
 export default {
   name: "FriendSetting",
   props: {
@@ -151,7 +151,7 @@ export default {
 };
 </script>
 <style lang="less">
-@import url("../config/custom.less");
+@import url("../../config/custom.less");
 .overlay {
   background-color: rgba(0, 0, 0, 0.5);
 }

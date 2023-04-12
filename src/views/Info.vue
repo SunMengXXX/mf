@@ -39,7 +39,7 @@ import { reactive, toRaw, toRefs } from "vue";
 import { useRouter } from "vue-router";
 import { Toast } from "vant";
 import { ref } from "vue";
-import Header from "../components/Header.vue";
+import Header from "../components/PageComponents/Header.vue";
 import axios from "../utils/axios";
 import router from "../router/index";
 export default {

@@ -88,7 +88,7 @@
 
 <script>
 import { reactive, toRefs, ref, onMounted } from "vue";
-import Header from "../components/Header.vue";
+import Header from "../components/PageComponents/Header.vue";
 import axios from "../utils/axios";
 import { Toast } from "vant";
 import router from "../router";

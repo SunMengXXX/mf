@@ -9,7 +9,7 @@
         left-arrow
       >
         <template #right>
-          <van-icon name="add-o" dot size="0.5rem" @click="newfriend" />
+          <van-icon name="add-o" :dot="dot" size="0.5rem" @click="newfriend" />
         </template>
       </van-nav-bar>
     </div>
@@ -56,7 +56,6 @@
         ></NewFriendRequest>
       </van-list>
     </div>
-
     <!-- 好友列表 -->
     <van-pull-refresh
       v-if="!newFriendsPage"
@@ -86,10 +85,9 @@ import { useRouter } from "vue-router";
 import { Toast } from "vant";
 import axios from "../utils/axios";
 import router from "../router/index";
-import FriendSetting from "../components/FriendSetting.vue";
+import FriendSetting from "../components/FriendComponents/FriendSetting.vue";
 import { checkFriendRequest } from "../tools/checkfriendrequest";
-import NewFriendRequest from "../components/NewFriendRequest.vue";
-import { type } from "os";
+import NewFriendRequest from "../components/FriendComponents/NewFriendRequest.vue";
 export default {
   name: "Friends",
   components: {
@@ -122,26 +120,17 @@ export default {
     const dot = ref(false);
     const changDotState = () => {
       checkFriendRequest();
-      friendReq.value = JSON.parse(localStorage.getItem("friendReq"));
+      friendReq.value = JSON.parse(
+        localStorage.getItem("friendReq")
+          ? localStorage.getItem("friendReq")
+          : "[]"
+      );
       dot.value = friendReq.value.length === 0 ? false : true;
     };
     // 显示小红点
     onMounted(() => {
       changDotState();
-      /* getFriendReq(); */
     });
-
-    // 获取好友请求
-    /* const getFriendReq = async () => {
-      const { data } = await axios.get("/HNBC/friend/getrequest");
-      const arr = Object.entries(data);
-      for (let i = 0; i < arr.length; i++) {
-        state.newFriends.push({
-          nickname: arr[i][0],
-          info: arr[i][1],
-        });
-      }
-    }; */
 
     //阻止关闭弹框
     const beforeClose = async (action) => {
@@ -184,7 +173,7 @@ export default {
         position: "bottom",
         duration: 1000,
       });
-      changDotState()
+      changDotState();
     };
 
     // 获取好友列表
@@ -285,7 +274,7 @@ export default {
   padding: 10px;
   // padding-bottom: 50px;
 }
-.tips{
+.tips {
   font-size: 0.2rem;
   margin-bottom: 0.1rem;
 }

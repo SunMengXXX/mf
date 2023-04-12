@@ -53,7 +53,7 @@ import { ref } from "vue";
 import { showToast, Toast } from "vant";
 import AddLedger from "./AddLedger.vue";
 import AddSharers from "./AddSharers.vue";
-import axios from "../utils/axios";
+import axios from "../../utils/axios";
 export default {
   name: "LedgerItem",
   props: {
@@ -139,7 +139,7 @@ export default {
 };
 </script>
 <style lang='less'>
-@import url("../config/custom.less");
+@import url("../../config/custom.less");
 .item {
   margin-top: 10px;
   margin-bottom: 10px;
@@ -152,19 +152,4 @@ export default {
     border-top: 1px solid @primary-bg;
   }
 }
-/* .add {
-  position: fixed;
-  bottom: 100px;
-  right: 30px;
-  width: 40px;
-  border-radius: 50%;
-  border: 1px solid #e9e9e9;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  background-color: #fff;
-  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
-  color: @primary;
-} */
 </style>

@@ -12,7 +12,7 @@
     </div>
     <Circle :all="allBudget" :remain="remainBudget"></Circle>
     <van-grid class="grid" direction="horizontal" :column-num="2">
-      <van-grid-item icon="bill-o" text="账本" />
+      <van-grid-item icon="bill-o" @click="budgetsList" text="预算" />
       <van-grid-item
         icon="friends-o"
         :dot="dot"
@@ -36,8 +36,9 @@ import { onMounted, ref, reactive, toRefs } from "vue";
 import axios from "../utils/axios";
 import router from "../router/index";
 import { Toast } from "vant";
-import Circle from "../components/Circle.vue";
+import Circle from "../components/UserInfoComponents/Circle.vue";
 import { checkFriendRequest } from "../tools/checkfriendrequest";
+import { off } from "process";
 export default {
   name: "User",
   components: {
@@ -97,20 +98,22 @@ export default {
     //获取用户总预算
     const getUserBudget = async () => {
       const { data } = await axios.get("/HNBC/userbudget/all");
-      length = data.length;
-      let all = 0;
-      let remain = 0;
-      for (let i = 0; i < length; i++) {
-        all += data[i].amount;
-        remain += data[i].residual;
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].state === "进行中") {
+          allBudget.value = data[i].amount;
+          remainBudget.value = data[i].residual;
+        }
       }
-      allBudget.value = all;
-      remainBudget.value = remain;
     };
 
+    // 获取预算列表
+    const budgetsList = () => {
+      router.push("/budgets");
+    };
+    // 获取好友列表
     const friendsList = () => {
       if (state.user.nickName && state.user.age && state.user.sex) {
-        router.push({ path: "/friends" });
+        router.push("/friends");
       } else {
         Toast.fail("完成个人信息后方可使用");
       }
@@ -134,6 +137,7 @@ export default {
       allBudget,
       remainBudget,
       friendsList,
+      budgetsList,
       friendReq,
       dot,
     };
