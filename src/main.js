@@ -3,7 +3,7 @@ import App from './App.vue'
 import dayjs from 'dayjs'
 import 'lib-flexible/flexible'
 import router from './router'
-import {TreeSelect , SwipeCell , Popover,ActionSheet,Col, Row,Radio,RadioGroup,Circle,Uploader, Search, Image as VanImage, Grid, GridItem, Button, Tabbar, TabbarItem, Form, Field, Icon, NavBar, Cell, CellGroup, Popup, List, PullRefresh, DatetimePicker, NumberKeyboard, Dialog, Progress, Rate, Divider } from 'vant';
+import { Sticky, Cascader, TreeSelect, SwipeCell, Popover, ActionSheet, Col, Row, Radio, RadioGroup, Circle, Uploader, Search, Image as VanImage, Grid, GridItem, Button, Tabbar, TabbarItem, Form, Field, Icon, NavBar, Cell, CellGroup, Popup, List, PullRefresh, DatetimePicker, NumberKeyboard, Dialog, Progress, Rate, Divider } from 'vant';
 import 'vant/lib/index.css'; // 全局引入样式
 import './index.css'
 
@@ -24,9 +24,11 @@ app.config.globalProperties.$filters = {
 
 app.use(router)
 app.use(Tabbar)
+app.use(Cascader)
 app.use(TabbarItem)
 app.use(ActionSheet)
 app.use(Uploader)
+app.use(Sticky)
 app.use(SwipeCell)
 app.use(Circle)
 app.use(Col)

@@ -23,34 +23,45 @@
       <template #content>
         <!-- 进行中的预算 -->
         <van-list v-if="activeIndex === 0">
-          <BudgetItem v-for="item in ongoing" :budget="item" :key="item"></BudgetItem>
+          <BudgetItem
+            v-for="item in ongoing"
+            :budget="item"
+            :key="item"
+          ></BudgetItem>
         </van-list>
 
         <!-- 未开始的预算 -->
         <van-list v-if="activeIndex === 1">
-          <BudgetItem v-for="item in unstarted" :budget="item" :key="item"></BudgetItem>
+          <BudgetItem
+            v-for="item in unstarted"
+            :budget="item"
+            :key="item"
+          ></BudgetItem>
         </van-list>
 
         <!-- 已完成的预算 -->
-        <van-list v-if="activeIndex===2">
+        <van-list v-if="activeIndex === 2">
           <van-cell v-for="item in finished" :budget="item" :key="item" />
         </van-list>
       </template>
     </van-tree-select>
+    <AddBudget ref="addBudgetRef" @update="getUserBudget"></AddBudget>
   </div>
 </template>
   
   <script>
-import { onMounted, reactive, ref, toRefs, watch, toRaw } from "vue";
+import { onMounted, reactive, ref, toRefs, watch, toRaw, provide } from "vue";
 import { useRouter } from "vue-router";
 import { Toast } from "vant";
 import axios from "../utils/axios";
 import router from "../router/index";
+import AddBudget from "../components/BudgetComponents/AddBudget.vue";
 import BudgetItem from "../components/BudgetComponents/BudgetItem.vue";
 export default {
   name: "Budgets",
   components: {
     BudgetItem,
+    AddBudget,
   },
   setup() {
     const router = useRouter();
@@ -61,8 +72,12 @@ export default {
       activeIndex: 0,
       items: [{ text: "进行中" }, { text: "未开始" }, { text: "已结束" }],
     });
+    const addBudgetRef = ref(null);
     //获取用户总预算
     const getUserBudget = async () => {
+      state.ongoing = [];
+      state.unstarted = [];
+      state.finished = [];
       const { data } = await axios.get("/HNBC/userbudget/all");
       for (let i = 0; i < data.length; i++) {
         if (data[i].state === "进行中") {
@@ -77,18 +92,21 @@ export default {
     onMounted(() => {
       getUserBudget();
     });
-    const addBudget = () => {};
+    const addBudget = () => {
+      addBudgetRef.value.toggle();
+    };
 
     // 返回方法
     const back = () => {
       router.back();
     };
-
+    provide('getUserBudget',getUserBudget)
     return {
       ...toRefs(state),
       back,
       getUserBudget,
       addBudget,
+      addBudgetRef,
     };
   },
 };

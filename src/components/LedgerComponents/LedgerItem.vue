@@ -111,21 +111,23 @@ export default {
 
     const modifySharers = () => {
       AddSharersRef.value.toggle();
-      props.reRefreshdisabled = true;
     };
 
     const setting = () => {
-      addLedger();
+      if(state.details.isOwner === 1){
+
+        addLedger();
+      }else{
+        Toast.fail('只有创建者可以修改参数')
+      }
     };
     const addLedger = () => {
       ModifyRef.value.toggle();
     };
     onMounted(() => {
       getLedger();
-      //onRefresh = props.refresh;
     });
     watch(props, (newVal) => {
-      console.log(newVal)
     });
     return {
       ...toRefs(state),

@@ -120,7 +120,7 @@ export default {
         state.list = [];
         setTimeout(() => {
           state.refreshing = false;
-        }, 200);
+        }, 0);
       }
       state.loading = true;
       state.list = data;

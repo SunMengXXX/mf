@@ -6,21 +6,22 @@
       is-link
       @click="getDetail"
     />
-    <sapn class="start">开始时间：{{ startTime }} </sapn>
-    <!-- <template #right-icon>
-        <van-icon name="ellipsis"></van-icon>
-      </template>
-    </van-cell> -->
+    <sapn class="start">开始时间：{{ startTime.substring(0, 10) }} </sapn>
+    <AddBudget
+      ref="addBudgetRef"
+      :budgetid="userbudgetid"
+      @update="refresh"
+    ></AddBudget>
   </div>
 </template>
 
 <script>
-import { computed, onMounted, reactive, toRefs, watch } from "vue";
+import { ref, onMounted, reactive, toRefs, watch } from "vue";
 import { useRouter } from "vue-router";
-import { ref } from "vue";
 import { Toast } from "vant";
 import axios from "../../utils/axios";
 import { filter } from "minimatch";
+import AddBudget from "./AddBudget.vue";
 export default {
   name: "LedgerItem",
   props: {
@@ -28,8 +29,12 @@ export default {
       type: Object,
       default: {},
     },
+    update: Function,
   },
-  setup(props) {
+  components: {
+    AddBudget,
+  },
+  setup(props, ctx) {
     const router = useRouter();
     const state = reactive({
       // 从外部获取的有关数据
@@ -42,7 +47,13 @@ export default {
       userbudgetid: -1,
       userid: -1,
     });
-    const getDetail = () => {};
+    const addBudgetRef = ref(null);
+    const getDetail = () => {
+      addBudgetRef.value.toggle();
+    };
+    const refresh = () => {
+      ctx.emit("update");
+    };
     onMounted(() => {
       state.all = props.budget.amount;
       state.createTime = props.budget.createtime;
@@ -56,10 +67,12 @@ export default {
     watch(props, (newVal) => {
       //console.log(newVal);
     });
-    filter();
+
     return {
       ...toRefs(state),
       getDetail,
+      addBudgetRef,
+      refresh,
     };
   },
 };

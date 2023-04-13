@@ -22,11 +22,11 @@
         >
       </div>
       <div v-if="isShared">
-        <span class="tips">（向左滑动可选择操作）</span>
+        <span class="tips" v-if="isOwner === 1">（向左滑动可选择操作）</span>
         <van-list>
           <van-swipe-cell class="cellbox" v-for="item in list" :key="item">
             <van-cell :title="item" value="已共享" />
-            <template #right>
+            <template v-if="isOwner === 1" #right>
               <van-button
                 square
                 type="danger"
@@ -38,8 +38,14 @@
         </van-list>
         <div>
           <van-divider
+            v-if="isOwner === 1"
             :style="{ color: 'grey', borderColor: 'grey', padding: '0 16px' }"
             >添加更多账本成员</van-divider
+          >
+          <van-divider
+            v-if="isOwner === 0"
+            :style="{ color: 'grey', borderColor: 'grey', padding: '0 16px' }"
+            >只有创建者可以添加成员</van-divider
           >
           <van-list @load="onload" :finished="finished">
             <van-swipe-cell
@@ -81,6 +87,7 @@ export default {
     const id = ref("-1"); //账本ID
     const list = ref([]); //账本用户列表
     const state = reactive({
+      isOwner: 0,
       isShared: false,
       show: false, // 显示隐藏添加账单弹窗
       page: 0,
@@ -113,24 +120,28 @@ export default {
       return arr;
     });
     const handle = async (option, item) => {
-      if (option === "add") {
-        const data = await axios.put("/HNBC/ledger/addsharer", {
-          ledgerid: id.value,
-          nickname: item,
-        });
-        Toast.success(data.msg);
-      } else {
-        const data = await axios.put("/HNBC/ledger/deletesharer", {
-          ledgerid: id.value,
-          nickname: item,
-        });
-        if (data.state === "404") {
-          Toast.fail(data.msg);
-        } else {
+      if (state.isOwner === 1) {
+        if (option === "add") {
+          const data = await axios.put("/HNBC/ledger/addsharer", {
+            ledgerid: id.value,
+            nickname: item,
+          });
           Toast.success(data.msg);
+        } else {
+          const data = await axios.put("/HNBC/ledger/deletesharer", {
+            ledgerid: id.value,
+            nickname: item,
+          });
+          if (data.state === "404") {
+            Toast.fail(data.msg);
+          } else {
+            Toast.success(data.msg);
+          }
         }
+        onRefresh();
+      } else {
+        Toast.fail("只有创建者可以修改共享成员");
       }
-      onRefresh();
     };
     // 获取好友列表
     const onRefresh = () => {
@@ -138,13 +149,16 @@ export default {
       state.friendsList = [];
       state.finished = false;
       state.page = 0;
+      state.isOwner = 0;
       onload();
     };
 
     //加载时调用
     const onload = () => {
       getSharedList();
-      getFriendList();
+      if (state.isOwner === 1) {
+        getFriendList();
+      }
     };
 
     const getFriendList = async () => {
@@ -172,13 +186,11 @@ export default {
       id.value = newVal.detail.ledgerID;
       //list.value = newVal.detail.sharers;
       state.isShared = newVal.detail.isShared === "YES" ? true : false;
+      state.isOwner = newVal.detail.isOwner;
     });
     watch(unsharedList, (newVal) => {
-      //console.log(newVal);
     });
-    watch(state.friendsList, (newVal) => {
-      console.log(newVal);
-    });
+    watch(state.friendsList, (newVal) => {});
     return {
       ...toRefs(state),
       toggle,
@@ -200,7 +212,7 @@ export default {
 @import url("../../config/custom.less");
 .add-wrap {
   padding-top: 12px;
-  height: 20rem;
+  min-height: 20rem;
   .header {
     display: flex;
     justify-content: space-between;

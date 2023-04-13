@@ -109,6 +109,7 @@ export default {
       ledgerName: "", // 账单价格
       marks: "",
       ledgerType: "self",
+      isOwner: false,
     });
 
     const toggle = () => {
@@ -149,23 +150,22 @@ export default {
         state.newMark = "";
         Toast.success(result.msg);
         ctx.emit("refresh");
-
-        //账本切换功能!!!
       } else {
-        const params = {
-          ledgerid: detail.ledgerID,
-          ledgername: detail.ledgerName,
-          marks: detail.marks,
-          isshared: detail.ledgerType === "self" ? "NO" : "YES",
-          sharers: [],
-          state: checked.value === "1" ? "进行中" : "已结束",
-        };
-        const result = await axios.put("/HNBC/ledger/updateledger", params);
-
-        Toast.success(result.msg);
-        ctx.emit("refresh");
-
-        //账本切换功能!!!
+        if (detail.isOwner) {
+          const params = {
+            ledgerid: detail.ledgerID,
+            ledgername: detail.ledgerName,
+            marks: detail.marks,
+            isshared: detail.ledgerType === "self" ? "NO" : "YES",
+            sharers: [],
+            state: checked.value === "1" ? "进行中" : "已结束",
+          };
+          const result = await axios.put("/HNBC/ledger/updateledger", params);
+          Toast.success(result.msg);
+          ctx.emit("refresh");
+        } else {
+          Toast.fail("只有创建者可以修改参数");
+        }
       }
     };
     const unsetMark = () => {
@@ -185,6 +185,7 @@ export default {
       detail.ledgerName = newVal.detail.ledgerName;
       detail.ledgerType = newVal.detail.isShared === "YES" ? "shared" : "self";
       detail.marks = newVal.detail.marks;
+      detail.isOwner = newVal.detail.isOwner === 1 ? true : false;
       state.newMark = detail.marks;
       checked.value = newVal.detail.ledgerState === "进行中" ? "1" : "2";
       shared.value = newVal.detail.isShared === "YES" ? true : false;
@@ -213,7 +214,7 @@ export default {
 @import url("../../config/custom.less");
 .add-wrap {
   padding-top: 12px;
-  height: 15rem;
+  min-height: 10rem;
   .header {
     display: flex;
     justify-content: space-between;
