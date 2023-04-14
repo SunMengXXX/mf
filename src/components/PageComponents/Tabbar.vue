@@ -32,7 +32,11 @@ export default {
       router.replace({ path });
       checkFriendRequest();
       friendReq.value = localStorage.getItem("friendReq");
-      dot.value = JSON.parse(friendReq.value).length === 0 ? false : true;
+      if (friendReq.value) {
+        dot.value = JSON.parse(friendReq.value).length === 0 ? false : true;
+      } else {
+        dot.value = false;
+      }
     };
 
     // 检查好友请求 有的话显示小红点

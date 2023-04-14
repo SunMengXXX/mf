@@ -302,7 +302,7 @@ export default {
           Toast.fail("密码必须包含大小写、数字、特殊字符，且在8到16位");
           return false;
         } else {
-          const data = await axios.put("/HNBC/user/updatepassword", {
+          const data = await axios.put("/HNBC/userinfo/updatepassword", {
             originalpassword: state.oldPass,
             newpassword: state.newPass,
           });
@@ -340,7 +340,7 @@ export default {
       })
         .then(async () => {
           // 确认
-          const data = await axios.delete("/HNBC/user/deleteuser");
+          const data = await axios.delete("/HNBC/userinfo/deleteuser");
           Toast.success({
             message: data.msg + "\n即将跳转至登录页面",
             duration: 1000,

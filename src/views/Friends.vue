@@ -181,7 +181,7 @@ export default {
       // data格式：friendid,friendname,marks,onlinetime
       state.loading = true;
       try {
-        const { data } = await axios.get(`/HNBC/friend/get/${state.page}`);
+        const { data } = await axios.get(`/HNBC/friend/get/${state.page}/`);
         setTimeout(
           () => {
             state.loading = false;

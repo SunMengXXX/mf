@@ -78,7 +78,7 @@ export default {
         sex: state.sex,
         icon: icon,
       }; */
-      const data = await axios.post("/HNBC/user/saveuserinfo", formdata);
+      const data = await axios.post("/HNBC/userinfo/saveuserinfo", formdata);
       axios.defaults.headers.post["Content-Type"] = "application/json";
       Toast.success(data.msg);
       if (data.state === "200") {

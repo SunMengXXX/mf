@@ -9,7 +9,7 @@
         :value="details.isShared === 'YES' ? '共享' : '个人'"
         :label="details.marks || '备注'"
         is-link
-        @click="getLedger"
+        @click="getBill"
       />
     </van-cell-group>
     <div class="avatar-icon">
@@ -99,7 +99,7 @@ export default {
     // 通过账单ID查询详细数据
     const getLedger = async () => {
       const { data } = await axios.get(
-        `/HNBC/ledger/single/${state.details.ledgerID}`
+        `/HNBC/ledger/single/${state.details.ledgerID}/`
       );
       state.details.ledgerName = data.ledgername;
       state.details.createTime = data.createtime;
@@ -109,16 +109,16 @@ export default {
       state.details.ledgerState = data.state;
     };
 
+    const getBill = () => {};
     const modifySharers = () => {
       AddSharersRef.value.toggle();
     };
 
     const setting = () => {
-      if(state.details.isOwner === 1){
-
+      if (state.details.isOwner === 1) {
         addLedger();
-      }else{
-        Toast.fail('只有创建者可以修改参数')
+      } else {
+        Toast.fail("只有创建者可以修改参数");
       }
     };
     const addLedger = () => {
@@ -126,14 +126,15 @@ export default {
     };
     onMounted(() => {
       getLedger();
+      console.log(axios.defaults.headers);
     });
-    watch(props, (newVal) => {
-    });
+    watch(props, (newVal) => {});
     return {
       ...toRefs(state),
       setting,
       getLedger,
       ModifyRef,
+      getBill,
       modifySharers,
       AddSharersRef,
     };

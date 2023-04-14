@@ -78,7 +78,7 @@ export default {
 
     // 获取用户信息
     const getUserInfo = async () => {
-      const { data } = await axios.get("/HNBC/user/getuserinfo");
+      const { data } = await axios.get("/HNBC/userinfo/getuserinfo");
       //console.log(axios.defaults);
       state.user.userID = data.userid;
       state.user.nickName = data.nickname;
@@ -120,7 +120,7 @@ export default {
     };
     // 退出登录
     const logout = async () => {
-      const data = await axios.get("/HNBC/user/logout");
+      const data = await axios.get("/HNBC/userinfo/logout");
       Toast.success({
         message: data.msg + "\n即将跳转至登录页面",
         duration: 1000,
