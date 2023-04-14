@@ -46,6 +46,7 @@ const router = createRouter({
       name: 'Detail',
       component: () => import(/* webpackChunkName: "detail" */ '../views/Detail.vue')
     },
+
     {
       path: '/about',
       name: 'About',
@@ -75,7 +76,13 @@ const router = createRouter({
       path: '/info',
       name: 'Info',
       component: () => import(/* webpackChunkName: "Info" */ '../views/Info.vue')
-    }
+    },
+    {
+      path: '/incomedetail',
+      name: 'IncomeDetail',
+      component: () =>
+        import( /* webpackChunkName: "detail" */ '../views/IncomeDetail.vue')
+    },
   ]
 })
 

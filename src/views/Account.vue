@@ -67,7 +67,7 @@
               size="small"
               type="primary"
               @click="sendCAPTCHA"
-              :disabled="disabledController"
+              :disabled="emailDisabled"
               >发送验证码</van-button
             >
           </template>
@@ -88,6 +88,7 @@
           label="新手机号"
           clearable
           placeholder="请输入要绑定的手机号"
+          :rules="registerRules.userPhone"
           class="cellBox"
         />
         <van-field
@@ -104,7 +105,7 @@
               size="small"
               type="primary"
               @click="sendCAPTCHA"
-              :disabled="disabledController"
+              :disabled="phoneDisabled"
               >发送验证码</van-button
             >
           </template>
@@ -124,70 +125,64 @@ import registerRules from "../rules/registerRules";
 function checkCAPTCHA(state, disabledController) {
   //验证码发送
   const sendCAPTCHA = (target) => {
-    if (
-      state.newEmail === null ||
-      state.newEmail === "" ||
-      state.newEmail.trim() === ""
-    ) {
-      Toast({
-        message: "邮箱不能为空！",
-        position: "bottom",
-      });
-    } else if (
-      state.newPhone === null ||
-      state.newPhone === "" ||
-      state.newPhone.trim() === ""
-    ) {
-      Toast({
-        message: "手机号不能为空！",
-        position: "bottom",
-      });
-    } else {
-    }
-    if (
-      state.userName.includes("@") &&
-      !/^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/.test(
-        state.userName
-      )
-    ) {
-      Toast({
-        message: "邮箱格式错误，请重新输入！",
-        position: "bottom",
-      });
-    } else if (
-      !state.userName.includes("@") &&
-      !/^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$/.test(
-        state.userName
-      )
-    ) {
-      Toast({
-        message: "手机号格式错误，请重新输入！",
-        position: "bottom",
-      });
-    } else {
-      getCAPTCHA(target);
+    if (state.emailVisible) {
+      if (
+        state.newEmail === null ||
+        state.newEmail === "" ||
+        state.newEmail.trim() === ""
+      ) {
+        Toast.fail("邮箱不能为空！");
+      } else if (state.newEmail === state.email) {
+        Toast.fail("新邮箱不能与原邮箱相同");
+      } else if (
+        !/^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/.test(
+          state.newEmail
+        )
+      ) {
+        Toast.fail("邮箱格式不正确");
+      } else {
+        getCAPTCHA(target);
+      }
+    } else if (state.phoneVisible) {
+      if (
+        state.newPhone === null ||
+        state.newPhone === "" ||
+        state.newPhone.trim() === ""
+      ) {
+        Toast.fail("手机号不能为空");
+      } else if (state.newPhone === state.phone) {
+        Toast.fail("新手机号不能\n与原手机号相同");
+      } else if (
+        !/^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$/.test(
+          state.newPhone
+        )
+      ) {
+        Toast.fail("手机号格式不正确");
+      } else {
+        getCAPTCHA(target);
+      }
     }
   };
   //从后端获取验证码
   const getCAPTCHA = async (target) => {
     try {
-      if (state.userName.includes("@")) {
+      if (state.emailVisible) {
         const data = await axios.post("/HNBC/user/emailcaptcha", {
-          email: state.userName,
+          email: state.newEmail,
         });
         if (data.state === "200") {
           Toast.success(data.msg);
-          disabledController.value = true;
-          timeLock(target, disabledController);
+          state.emailDisabled = true;
+          timeLock(target, state.emailDisabled);
         }
-      } else {
+      } else if (state.phoneVisible) {
         const data = await axios.post("/HNBC/user/phonecaptcha", {
           phone: state.userName,
         });
         if (data.state === "200") {
           Toast.success(data.msg);
-          disabledController.value = true;
-          timeLock(target, disabledController);
+          state.phoneDisabled = true;
+          timeLock(target, state.phoneDisabled);
         }
       }
     } catch (e) {}
@@ -205,7 +200,7 @@ function timeLock(target, disabledController) {
     target.target.innerHTML = "(" + time + "s)";
     if (time < 1) {
       clearInterval(lock);
-      disabledController.value = false;
+      disabledController = false;
       target.target.innerHTML = "发送验证码";
     }
   }, 1000);
@@ -237,77 +232,56 @@ export default {
 
       // 验证码
       captcha: "",
+      emailDisabled: false,
+      phoneDisabled: false,
     });
-    const disabledController = ref(false);
     // 邮箱绑定异步关闭弹框
     const emailBeforeClose = async (action) => {
       if (action === "confirm") {
-        if (state.newPass != state.newPass2) {
-          Toast.fail("密码不一致");
-          return false;
-        } else if (state.newPass === state.oldPass) {
-          Toast.fail("新密码不能与原密码相同");
-          return false;
-        } else if (
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[~!@&%#_])[a-zA-Z0-9~!@&%#_]{8,16}$/.test(
-            state.newPass
-          ) === false
-        ) {
-          Toast.fail("密码必须包含大小写、数字、特殊字符，且在8到16位");
-          return false;
-        } else {
-          const data = await axios.put("/HNBC/user/updatepassword", {
-            originalpassword: state.oldPass,
-            newpassword: state.newPass,
-          });
+        const data = await axios.post("/HNBC/user/bindemail", {
+          email: state.newEmail,
+          captcha: state.captcha,
+        });
+        if (data) {
           Toast.success(data.msg);
-          state.oldPass = "";
-          state.newPass = "";
-          state.newPass2 = "";
+          state.newEmail = "";
+          state.captcha = "";
+          getPhoneAndEmail();
           state.passVisible = false;
           return true;
+        } else {
+          Toast.fail(data.msg);
+          return false;
         }
       } else {
-        state.oldPass = "";
-        state.newPass = "";
-        state.newPass2 = "";
-        state.passVisible = false;
+        state.newEmail = state.email;
+        state.captcha = "";
+        state.emailVisible = false;
         return true;
       }
     };
     // 手机绑定异步关闭弹框
     const phoneBeforeClose = async (action) => {
       if (action === "confirm") {
-        if (state.newPass != state.newPass2) {
-          Toast.fail("密码不一致");
-          return false;
-        } else if (state.newPass === state.oldPass) {
-          Toast.fail("新密码不能与原密码相同");
-          return false;
-        } else if (
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[~!@&%#_])[a-zA-Z0-9~!@&%#_]{8,16}$/.test(
-            state.newPass
-          ) === false
-        ) {
-          Toast.fail("密码必须包含大小写、数字、特殊字符，且在8到16位");
-          return false;
-        } else {
-          const data = await axios.put("/HNBC/user/updatepassword", {
-            originalpassword: state.oldPass,
-            newpassword: state.newPass,
-          });
+        const data = await axios.post("/HNBC/user/bindphone", {
+          phone: state.newPhone,
+          captcha: state.captcha,
+        });
+        if (data) {
           Toast.success(data.msg);
-          state.oldPass = "";
-          state.newPass = "";
-          state.newPass2 = "";
-          state.passVisible = false;
+          state.newPhone = "";
+          state.captcha = "";
+          getPhoneAndEmail();
+          state.phoneVisible = false;
           return true;
+        } else {
+          Toast.fail(data.msg);
+          return false;
         }
       } else {
-        state.oldPass = "";
-        state.newPass = "";
-        state.newPass2 = "";
-        state.passVisible = false;
+        state.newPhone = state.phone;
+        state.captcha = "";
+        state.phoneVisible = false;
         return true;
       }
     };
@@ -383,8 +357,8 @@ export default {
 
     return {
       ...toRefs(state),
-      ...checkCAPTCHA(state, disabledController),
-      disabledController,
+      ...checkCAPTCHA(state),
+      ...checkCAPTCHA(state),
       passBeforeClose,
       phoneBeforeClose,
       emailBeforeClose,
@@ -421,8 +395,13 @@ export default {
     }
   }
   .cellBox {
+    min-height: 52px;
     .van-cell__title {
       width: 2rem;
+    }
+    .van-button {
+      width: 80px;
+      margin-top: 2px;
     }
   }
 }

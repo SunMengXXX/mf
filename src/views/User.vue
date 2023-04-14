@@ -85,8 +85,8 @@ export default {
       state.user.registerTime = data.create_time;
       state.user.sex = data.sex;
       state.user.age = data.age;
-      state.user.ledgerCount = data.ledgercout;
-      state.user.ledgerDay = data.ledgerday;
+      state.user.ledgerCount = data.numrecord;
+      state.user.ledgerDay = data.numactivateday;
       state.user.avatar = data.icon;
       localStorage.setItem("user", JSON.stringify(data));
       console.log(state.user.nickName, state.user.age, state.user.sex);

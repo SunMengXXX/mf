@@ -1,38 +1,38 @@
 <template>
   <div class="detail">
-    <Header title="账单详情" />
+    <Header title="收入详情" />
     <div class="card">
       <div class="type"></div>
-      <div class="amount expense">-{{ detail.billCost }}</div>
+      <div class="amount income">+{{ detail.incomeEarning }}</div>
       <div class="info">
         <div class="time">
-          <span>账单时间</span>
-          <span>{{ detail.bill_Time }}</span>
+          <span>收入时间</span>
+          <span>{{ detail.income_Time }}</span>
         </div>
         <div class="time">
-          <span>账单类型</span>
-          <span>{{ detail.bill_CostType.toString() }}</span>
+          <span>收入类型</span>
+          <span>{{ detail.income_EarningType.join("、") }}</span>
         </div>
         <div class="time">
           <span>记录时间</span>
-          <span>{{ detail.billCreateTime }}</span>
+          <span>{{ detail.incomeCreateTime }}</span>
         </div>
         <div class="time">
           <span>更改时间</span>
-          <span>{{ detail.billUpdateTime }}</span>
+          <span>{{ detail.incomeUpdateTime }}</span>
         </div>
         <div class="remark">
           <span>备注</span>
-          <span>{{ detail.billMarks || "-" }}</span>
+          <span>{{ detail.incomeMarks || "-" }}</span>
         </div>
         <div class="photo">
           <span>图片</span>
           <van-image
             class="avatar"
-            :src="detail.billPhoto"
+            :src="detail.incomePhoto"
             width="150"
             height="150"
-            v-if="detail.billPhoto != ''"
+            v-if="detail.incomePhoto != ''"
             ><template v-slot:loading>
               <van-loading type="spinner" size="20" /> </template
           ></van-image>
@@ -45,9 +45,9 @@
         <span @click="openModal"><van-icon name="edit" />编辑</span>
       </div>
       <!-- 编辑 -->
-      <ExpenseAdd
-        v-if="detail.billID"
-        ref="expenseAddRef"
+      <IncomeAdd
+        v-if="detail.incomeID"
+        ref="incomeAddRef"
         :detail="detail"
         @refresh="getDetail"
       />
@@ -59,7 +59,7 @@
 import { onMounted, reactive, ref, toRefs } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Header from "../components/PageComponents/Header.vue";
-import ExpenseAdd from "../components/BillComponents/ExpenseAdd.vue";
+import IncomeAdd from "../components/IncomeComponents/IncomeAdd.vue";
 import { typeMap } from "../utils";
 import axios from "../utils/axios";
 import { Toast, Dialog } from "vant";
@@ -67,35 +67,35 @@ export default {
   name: "Detail",
   components: {
     Header,
-    ExpenseAdd,
+    IncomeAdd,
   },
   setup() {
     const route = useRoute();
     const router = useRouter();
     const {
       id,
-      cost,
+      earning,
       createtime,
       updatetime,
       photo,
       marks,
-      cost_type,
-      billtime,
+      earning_type,
+      incometime,
     } = route.query;
 
-    const expenseAddRef = ref(null);
+    const incomeAddRef = ref(null);
     const state = reactive({
       // typeMap,
       // detail: {}
       detail: {
-        billID: "",
-        billCost: "",
-        billCreateTime: "",
-        billUpdateTime: "",
-        billPhoto: "",
-        billMarks: "",
-        bill_CostType: [],
-        bill_Time: "",
+        incomeID: "",
+        incomeEarning: "",
+        incomeCreateTime: "",
+        incomeUpdateTime: "",
+        incomePhoto: "",
+        incomeMarks: "",
+        income_EarningType: [],
+        income_Time: "",
       },
     });
 
@@ -104,29 +104,29 @@ export default {
     });
     // 获取账单详情方法
     const getDetail = async () => {
-      state.detail.billID = id;
-      state.detail.billCost = cost;
-      state.detail.billCreateTime = createtime;
-      state.detail.billUpdateTime = updatetime;
-      state.detail.billPhoto = photo;
-      state.detail.billMarks = marks;
-      state.detail.bill_CostType = cost_type;
-      state.detail.bill_Time = billtime;
+      state.detail.incomeID = id;
+      state.detail.incomeEarning = earning;
+      state.detail.incomeCreateTime = createtime;
+      state.detail.incomeUpdateTime = updatetime;
+      state.detail.incomePhoto = photo;
+      state.detail.incomeMarks = marks;
+      state.detail.income_EarningType = earning_type;
+      state.detail.income_Time = incometime;
     };
     // 打开编辑弹窗方法
     const openModal = () => {
-      expenseAddRef.value.toggle();
+      incomeAddRef.value.toggle();     
     };
 
     // 删除方法
     const deleteDetail = () => {
       Dialog.confirm({
         title: "删除",
-        message: "确认删除账单？",
+        message: "确认删除该收入？",
       })
         .then(async () => {
           const { data } = await axios.delete(
-            `/HNBC/bill/delete/${state.detail.billID}`
+            `/HNBC/income/delete/${state.detail.incomeID}`
           );
           Toast.success("删除成功");
           router.back();
@@ -138,7 +138,7 @@ export default {
 
     return {
       ...toRefs(state),
-      expenseAddRef,
+      incomeAddRef,
       openModal,
       getDetail,
       deleteDetail,
@@ -219,21 +219,20 @@ export default {
       }
     }
   }
-  .photo{
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      margin-bottom: 12px;
-      margin-right: 2.26667rem;
-      span:nth-of-type(1) {
-        flex: 6;
-        color: @color-text-caption;
-      }
-      span:nth-of-type(2) {
-        flex: 6;
-        color: @color-text-base;
-      }
-      
+  .photo {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 12px;
+    margin-right: 2.26667rem;
+    span:nth-of-type(1) {
+      flex: 6;
+      color: @color-text-caption;
+    }
+    span:nth-of-type(2) {
+      flex: 6;
+      color: @color-text-base;
+    }
   }
   .operation {
     width: 100%;

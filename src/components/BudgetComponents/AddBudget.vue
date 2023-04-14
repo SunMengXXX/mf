@@ -108,6 +108,7 @@ export default {
     date.currentDate = date.minDate;
     date.timeValue = timeFormat(date.currentDate);
     const getUserBudget = inject("getUserBudget");
+
     const toggle = () => {
       state.show = !state.show;
       if (state.show) {
