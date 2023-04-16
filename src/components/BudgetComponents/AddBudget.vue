@@ -24,7 +24,7 @@
         placeholder=""
       />
 
-      <div v-if="budgetid === -1">
+      <div v-if="budgetid === -1 || !startSetting">
         <van-field
           v-model="timeValue"
           is-link
@@ -74,6 +74,10 @@ function timeFormat(time) {
 }
 export default {
   props: {
+    starttime: {
+      type: String,
+      default: "未设置",
+    },
     budgetid: {
       type: Number,
       default: -1,
@@ -88,6 +92,7 @@ export default {
       budget: 0,
       newBudget: 0,
       state: "",
+      startSetting: false,
     });
     const date = reactive({
       msg: "",
@@ -98,6 +103,7 @@ export default {
         currentTime.getMonth(),
         currentTime.getDate()
       ),
+      chosenDate: null,
       pickerShow: false, // 用来显示弹出层
       timeValue: "",
     });
@@ -106,6 +112,7 @@ export default {
 
     date.changeDate = date.minDate;
     date.currentDate = date.minDate;
+    date.chosenDate = date.currentDate;
     date.timeValue = timeFormat(date.currentDate);
     const getUserBudget = inject("getUserBudget");
 
@@ -128,9 +135,9 @@ export default {
       if (data.state === "200") {
         Toast.success(data.msg);
         getUserBudget();
-      } else {
+      } /* else {
         Toast.fail(data.msg);
-      }
+      } */
     };
     //设置预算
     const setBudget = async () => {
@@ -138,12 +145,13 @@ export default {
         const data = await axios.put("/HNBC/userbudget/update", {
           amount: state.newBudget,
           userbudgetid: state.budgetid,
+          starttime: dayjs(date.changeDate).format("YYYY-MM-DD HH:mm:ss"),
         });
         Toast.success(data.msg);
       } else {
         const data = await axios.post("/HNBC/userbudget/add", {
           amount: state.newBudget,
-          starttime: dayjs(date.currentDate).format("YYYY-MM-DD HH:mm:ss"),
+          starttime: dayjs(date.changeDate).format("YYYY-MM-DD HH:mm:ss"),
         });
         Toast.success(data.msg);
       }
@@ -154,6 +162,7 @@ export default {
       state.show = false;
       state.newBudget = state.budget;
       date.currentDate = date.minDate;
+      date.chosenDate = date.currentDate;
       date.timeValue = timeFormat(date.currentDate);
     };
 
@@ -166,11 +175,12 @@ export default {
       setTimeout(() => {
         date.pickerShow = false;
         date.timeValue = timeFormat(date.currentDate);
+        date.chosenDate = date.currentDate;
       }, 100);
     };
     const cancelFn = () => {
       date.pickerShow = false;
-      date.currentDate = date.minDate;
+      date.currentDate = date.chosenDate;
     };
 
     onMounted(() => {
@@ -179,9 +189,10 @@ export default {
       }
     });
     const getBudget = async () => {
-      const { data } = await axios.get("/HNBC/userbudget/single", {
-        userbudgetid: state.budgetid,
-      });
+      const { data } = await axios.get(
+        `/HNBC/userbudget/single/${state.budgetid}`
+      );
+      console.log(props);
       const start = new Date(data.starttime);
       date.minDate = new Date(
         start.getFullYear(),
@@ -190,15 +201,19 @@ export default {
       );
       date.currentDate = start;
       date.timeValue = timeFormat(start);
+
       state.budget = data.amount;
       state.newBudget = data.amount;
       state.state = data.state;
+      console.log(state);
       if (state.state !== "进行中") {
         isOngoing.value = true;
       }
     };
     watch(props, (newVal) => {
       state.budgetid = newVal.budgetid;
+      state.startSetting = newVal.starttime === "未设置" ? false : true;
+      console.log(newVal);
       getBudget();
     });
     return {

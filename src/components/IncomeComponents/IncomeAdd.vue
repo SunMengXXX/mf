@@ -20,11 +20,6 @@
             :class="{ income: true, active: recognition == false }"
             >手动输入</span
           >
-          <span
-            @click="recognition = !recognition"
-            :class="{ income: true, active: recognition == true }"
-            >图片识别</span
-          >
         </div>
 
         <div @click="showDay = true" class="time">
@@ -88,6 +83,10 @@
               </span>
               <span>房产租金</span>
             </div>
+          </div>
+        </div>
+        <div class="type-warp">
+          <div class="type-body">
             <div class="type-item" @click="ChangeType15">
               <span
                 :class="{
@@ -139,84 +138,45 @@
           </div>
         </div>
         <!-- 有备注 -->
-        <div class="remark" v-if="remark" @click="remarkVisible = true">
-          {{ remark }}
-        </div>
-        <!-- 无备注 -->
-
-        <div class="remark" v-else @click="remarkVisible = true">添加备注</div>
-        <!-- 数字键盘 -->
-        <van-number-keyboard
-          :show="true"
-          extra-key="."
-          @delete="remove"
-          @input="inputChange"
-        />
+        <!-- <div class="remark" v-if="remark" @click="remarkVisible = true">
+          {{ remark }} -->
       </div>
-      <div class="PhotoInput" v-if="recognition">
-        <van-field name="uploader" label="上传票据">
-          <template #input>
-            <van-uploader
-              v-model="avatar"
-              :before-read="beforeRead"
-              :max-count="1"
-              :max-size="2 * 1024 * 1024"
-              @oversize="onOversize"
-              @delete="deleteFile"
-              capture="camera"
-              accept="image/*"
-            />
-            <van-button
-              class="btn-1"
-              type="primary"
-              size="small"
-              @click="photo_identification"
-              >智能识别</van-button
-            >
-          </template>
-        </van-field>
-        <van-cell-group>
-          <van-cell title="金额" :value="amount" />
-          <van-cell title="类型" :value="currentType" />
-          <van-cell title="收入时间" :value="dateIncome" />
-          <van-cell title="备注" :value="remark" />
-        </van-cell-group>
-      </div>
-      <van-dialog
-        :show="remarkVisible"
-        title="备注"
-        :show-cancel-button="true"
-        :overlay="true"
-        :close-on-click-overlay="true"
-        @cancel="cancel"
-        @confirm="confirm"
-      >
+      <!-- 无备注 -->
+      <!-- <div class="remark" v-else @click="remarkVisible = true">添加备注</div> -->
+      <van-cell-group inset>
         <van-field
           v-model="remark"
           rows="2"
           autosize
+          label="留言"
           type="textarea"
-          maxlength="20"
-          placeholder="请输入备注"
+          maxlength="1000"
+          placeholder="请输入留言"
           show-word-limit
         />
-      </van-dialog>
-
-      <van-popup
-        :show="showDay"
-        position="bottom"
-        round
-        :style="{ height: '46%' }"
-      >
-        <van-datetime-picker
-          v-model="date"
-          type="datetime"
-          title="选择时间"
-          @confirm="choseDay"
-          @cancel="showDay = false"
-        />
-      </van-popup>
+      </van-cell-group>
+      <!-- 数字键盘 -->
+      <van-number-keyboard
+        :show="true"
+        extra-key="."
+        @delete="remove"
+        @input="inputChange"
+      />
     </div>
+    <van-popup
+      :show="showDay"
+      position="bottom"
+      round
+      :style="{ height: '46%' }"
+    >
+      <van-datetime-picker
+        v-model="date"
+        type="datetime"
+        title="选择时间"
+        @confirm="choseDay"
+        @cancel="showDay = false"
+      />
+    </van-popup>
   </van-popup>
 </template>
 
@@ -237,45 +197,19 @@ export default {
   components: {},
   setup(props, ctx) {
     const id = props.detail && props.detail.incomeID; // 外部传进来的账单详情 id
-    const remarkVisible = ref(false);
-    const avatar = ref();
     const state = reactive({
-      showIncome: false, // 显示隐藏添加账单弹窗
-      active11:
-        id && props.detail.income_EarningType.indexOf("工资收入") >= 0
-          ? true
-          : false,
-      active12:
-        id && props.detail.income_EarningType.indexOf("业务收入") >= 0
-          ? true
-          : false,
-      active13:
-        id && props.detail.income_EarningType.indexOf("投资收益") >= 0
-          ? true
-          : false,
-      active14:
-        id && props.detail.income_EarningType.indexOf("房产租金") >= 0
-          ? true
-          : false,
-      active15:
-        id && props.detail.income_EarningType.indexOf("兼职收入") >= 0
-          ? true
-          : false,
-      active16:
-        id && props.detail.income_EarningType.indexOf("社交收入") >= 0
-          ? true
-          : false,
-      active17:
-        id && props.detail.income_EarningType.indexOf("奖金收入") >= 0
-          ? true
-          : false,
-      active18:
-        id && props.detail.income_EarningType.indexOf("其他收入") >= 0
-          ? true
-          : false,
+      showIncome: false, // 显示隐藏添加账单弹
+      active11: false,
+      active12: false,
+      active13: false,
+      active14: false,
+      active15: false,
+      active16: false,
+      active17: false,
+      active18: false,
       amount: id ? props.detail.incomeEarning : "", // 账单价格
       typeMap: typeMap, // 类型key-value键值对
-      currentType: id ? props.detail.income_EarningType : [], // 当前选择的类型对象
+      currentType: [], // 当前选择的类型对象
       showDay: false, // 选择日期显示/隐藏
       date: id
         ? dayjs(props.detail.income_Time).format("YYYY-MM-DD HH:mm:ss")
@@ -285,54 +219,12 @@ export default {
         : dayjs().format("YYYY-MM-DD HH:mm:ss"), // 传送的日期
       remark: id ? props.detail.incomeMarks : "",
       photo: id ? props.detail.incomePhoto : "",
-      recognition: false,
     });
 
-    onMounted(async () => {
+    onMounted(async () => {});
 
-    });
-
-    const cancel = () => {
-      Toast.fail("取消修改");
-      remarkVisible.value = false;
-    };
-    const confirm = () => {
-      // Toast.fail("取消修改");
-      remarkVisible.value = false;
-      console.log(state.remark);
-    };
     const toggle = () => {
       state.showIncome = !state.showIncome;
-    };
-        //图片过大
-    function onOversize() {
-      Toast.fail("文件太大");
-    }
-    //校验图片格式
-    const beforeRead = (avatar) => {
-      let fileType = "";
-      if (avatar instanceof Array && avatar.length) {
-        for (let i = 0; i < avatar.length; i++) {
-          fileType = avatar[i].type.substr(0, avatar[i].type.indexOf("/"));
-          if (fileType !== "image") {
-            Toast("格式错误");
-            return false;
-          }
-        }
-      } else {
-        fileType = avatar.type.substr(0, avatar.type.indexOf("/"));
-        if (fileType !== "image") {
-          Toast("格式错误");
-          return false;
-        }
-      }
-      return true;
-    };
-
-    //删除图片
-    const deleteFile = (avatar) => {
-      avatar = "";
-      console.log(avatar);
     };
 
     // 监听数字输入框改变值
@@ -359,96 +251,102 @@ export default {
     const choseDay = (value) => {
       state.date = value;
       state.dateIncome = dayjs(value).format("YYYY-MM-DD HH:mm:ss");
-      console.log(state.dateIncome);
+      // console.log(state.dateIncome);
       state.showDay = false;
     };
 
-    const photo_identification = async () => {
-      // axios.defaults.headers.get["Content-Type"] = "multipart/form-data";
-      // /* console.log(axios.defaults.headers); */
-      // const processingphoto = JSON.stringify(avatar.value[0].content);
-      // console.log(processingphoto);
-      // const formdata = new FormData();
-      // formdata.append("icon", processingphoto);
-      // const data = await axios.get("/HNBC/bill/recognition", formdata);
-      // console.log(data);
-      // axios.defaults.headers.get["Content-Type"] = "application/json";
-      // if (data.state === "200") {
-      //   state.amount = data.data.cost;
-      //   state.dateIncome = data.data.billtime;
-      //   state.remark = data.data.marks;
-      //   state.currentType= data.data.cost_type;
-      //   Toast.success("图片识别成功");
-      // }
-      console.log("识别功能未开启");
-    };
 
     const addIncome = async () => {
       if (!state.amount) {
         Toast.fail("请输入具体金额");
         return;
       }
-      if (state.currentType=="") {
+      if (state.currentType == "") {
         Toast.fail("请选择收入类别");
         return;
       }
       if (id) {
         const params = {
-          incomeid: id,
-          earning: Number(state.amount).toFixed(2),
-          photo: state.photo,
-          incometime: state.dateBill,
+          incomeid: parseInt(id),
+          earning: parseFloat(state.amount),
+          incometime: state.dateIncome,
+          marks: state.remark,
+          earning_type: state.currentType,
+          photo: "",
+        };
+        // console.log(params);
+        // 如果有 id 需要调用详情更新接口
+        const data = await axios.put("/HNBC/income/update", params);
+        if (data.state == "200") {
+          Toast.success(data.msg);
+          state.amount = "";
+          state.currentType = [];
+          state.showIncome = false;
+          state.date = new Date();
+          state.remark = "";
+          state.active11 = false;
+          state.active12 = false;
+          state.active13 = false;
+          state.active14 = false;
+          state.active15 = false;
+          state.active16 = false;
+          state.active17 = false;
+          state.active18 = false;
+
+          ctx.emit("refresh");
+        } else {
+          Toast.fail(data.msg);
+        }
+      } else {
+        const params = {
+          ledgerid: parseInt(localStorage.getItem("LedgerId")),
+          earning: parseFloat(state.amount),
+          incometime: state.dateIncome,
           marks: state.remark,
           earning_type: state.currentType,
         };
-        console.log(params);
-        // 如果有 id 需要调用详情更新接口
-        const result = await axios.put("/HNBC/income/update", params);
-        state.amount = "";
-        state.currentType = [];
-        state.showIncome = false;
-        state.date = new Date();
-        state.remark = "";
-        Toast.success("收入修改成功");
-        ctx.emit("refresh");
-      } else {
-        const params = {
-          ledgerid: localStorage.getItem("LedgerId"),
-          earning: Number(state.amount).toFixed(2),
-          incometime: state.dateIncome,
-          marks: state.remark,
-          cost_type: state.currentType,
-        };
-        const result = await axios.post("/HNBC/income/add", params);
-        state.amount = "";
-        state.currentType = [];
-        state.showIncome = false;
-        state.date = new Date();
-        state.remark = "";
-        Toast.success("收入新增成功");
-        ctx.emit("refresh");
+        const data = await axios.post("/HNBC/income/add", params);
+        if (data.state == "200") {
+          Toast.success(data.msg);
+          state.amount = "";
+          state.currentType = [];
+          state.showIncome = false;
+          state.date = new Date();
+          state.remark = "";
+          state.active11 = false;
+          state.active12 = false;
+          state.active13 = false;
+          state.active14 = false;
+          state.active15 = false;
+          state.active16 = false;
+          state.active17 = false;
+          state.active18 = false;
+          ctx.emit("refresh");
+        } else {
+          Toast.fail(data.msg);
+        }
       }
     };
     const ChangeType11 = () => {
       if (state.active11 == false) {
         state.active11 = true;
         state.currentType.push("工资收入");
-        console.log(state.currentType);
+        // console.log(state.currentType);
       } else {
         state.active11 = false;
         state.currentType.splice(state.currentType.indexOf("工资收入"), 1);
-        console.log(state.currentType);
+        // console.log(state.currentType);
       }
     };
     const ChangeType12 = () => {
       if (state.active12 == false) {
         state.active12 = true;
         state.currentType.push("业务收入");
-        console.log(state.currentType);
+        // console.log(state.currentType);
       } else {
         state.active12 = false;
         state.currentType.splice(state.currentType.indexOf("业务收入"), 1);
-        console.log(state.currentType);
+        // console.log(state.currentType);
       }
     };
     const ChangeType13 = () => {
@@ -526,9 +424,6 @@ export default {
       remove,
       choseDay,
       addIncome,
-      remarkVisible,
-      cancel,
-      confirm,
       ChangeType11,
       ChangeType12,
       ChangeType13,
@@ -537,11 +432,6 @@ export default {
       ChangeType16,
       ChangeType17,
       ChangeType18,
-      avatar,
-      photo_identification,
-      deleteFile,
-      onOversize,
-      beforeRead,
     };
   },
 };
@@ -664,7 +554,7 @@ export default {
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding: 16px 12px 10px 12px;
+        padding: 0.42667rem 0.62rem 0.26667rem 0.32rem;
         .iconfont-wrap {
           display: flex;
           justify-content: center;

@@ -20,7 +20,7 @@ const registerRules = {
       {
         pattern:
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[~!@&%#_])[a-zA-Z0-9~!@&%#_]{8,16}$/,
-        message: "密码格式错误",
+        message: "8到16位，包含大小写、数字、特殊字符",
       },
     ],
     usercaptcha: [{ required: true, message: "请输入验证码" }],

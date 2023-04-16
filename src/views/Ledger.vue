@@ -1,56 +1,60 @@
 <template>
-  <div>
-    <van-nav-bar title="账本" class="">
-      <template #left>
-        <van-icon name="search" size="0.6rem" @click="changeState" />
-      </template>
-    </van-nav-bar>
-    <van-search
-      left-icon=""
-      autofocus
-      v-model="searchVal"
-      v-if="search"
-      show-action
-      placeholder="请输入账本名称并按下回车"
-      @search="onSearch"
-      @cancel="onCancel"
-    />
-    <van-button
-      v-if="!search"
-      icon="plus"
-      type="primary"
-      block
-      @click="addLedger"
-      >新建账本</van-button
-    >
-    <div class="sort" v-if="!search">
-      <div class="type">
-        <span @click="changeType('createtime')"
-          ><van-icon name="fire-o" />时间</span
-        >
-        <span @click="changeType('heat')"><van-icon name="clock-o" />热度</span>
-      </div>
-    </div>
-    <div class="home">
-      <div class="content-wrap">
-        <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-          <van-list
-            :loading="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="onLoad"
+  <div class="home">
+    <div>
+      <van-nav-bar title="账本">
+        <template #left>
+          <van-icon name="search" size="0.6rem" @click="changeState" />
+        </template>
+      </van-nav-bar>
+      <van-search
+        left-icon=""
+        autofocus
+        v-model="searchVal"
+        v-if="search"
+        show-action
+        placeholder="请输入账本名称并按下回车"
+        @search="onSearch"
+        @cancel="onCancel"
+      />
+      <van-button
+      
+        v-if="!search"
+        icon="plus"
+        type="primary"
+        block
+        @click="addLedger"
+        >新建账本</van-button
+      >
+    
+      <div class="sort" v-if="!search" style="height:30px">
+        <div>
+          <span @click="changeType('createtime')" class="type"
+            ><van-icon name="fire-o" />时间</span
           >
-            <LedgerItem
-              v-for="item in list"
-              :ledgers="item"
-              :key="item"
-              @refresh="sort"
-            />
-          </van-list>
-        </van-pull-refresh>
+          <span @click="changeType('heat')" class="type"
+            ><van-icon name="clock-o" />热度</span
+          >
+        </div>
       </div>
-      <AddLedger calss="add" ref="AddLedgerRef" @refresh="onRefresh" />
     </div>
+    <div class="content-wrap">
+      <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
+        <van-list
+          :loading="loading"
+          :finished="finished"
+          finished-text="没有更多了"
+          @load="onLoad"
+        >
+          <LedgerItem
+            v-for="item in list"
+            :ledgers="item"
+            :key="item"
+            @refresh="sort"
+          />
+        </van-list>
+      </van-pull-refresh>
+    </div>
+    <AddLedger calss="add" ref="AddLedgerRef" @refresh="onRefresh" />
   </div>
 </template>
   
@@ -97,21 +101,20 @@ export default {
         Toast.fail("输入信息为空");
       } else {
         state.list = [];
-        const { data } = await axios.get("/HNBC/select/ledgerbyname", {
+        const { data } = await axios.post("/HNBC/select/ledgerbyname", {
           ledgername: searchVal.value,
         });
         if (data) {
           state.list = state.list.concat(data);
-          console.log(state.list);
-        }else{
-          Toast.fail('无法查询到有关账本')
+        } else {
+          Toast.fail("无法查询到有关账本");
         }
       }
     };
     const onCancel = () => {
       searchVal.value = "";
       search.value = false;
-      onRefresh()
+      onRefresh();
     };
 
     const getBillList = async (uri) => {
@@ -184,12 +187,20 @@ export default {
   
   <style lang='less' scoped>
 @import url("../config/custom.less");
-
+.type{
+  margin-right: 10px;
+  padding-block: 5px;
+  margin-top:10px;
+  font-size: 15px;
+}
+.span1{
+  margin-top:10px;
+}
 .home {
   height: 100%;
   display: flex;
   flex-direction: column;
-
+  padding-top: 0rem;
   .header {
     position: fixed;
     top: 0;
@@ -202,38 +213,17 @@ export default {
     color: #fff;
     font-size: 14px;
     z-index: 100;
-    .type-wrap {
-      background-color: #50ca84;
-      display: inline-block;
-      padding: 6px;
-      border-radius: 4px;
-      position: relative;
-      align-self: baseline;
-      .title {
-        margin-right: 22px;
-      }
-      .title::after {
-        content: "";
-        position: absolute;
-        top: 12px;
-        bottom: 11px;
-        right: 32px;
-        width: 1px;
-        background-color: #e9e9e9;
-      }
+    .title {
+      margin-right: 22px;
     }
-    .data-wrap {
-      margin-top: 10px;
-      font-size: 13px;
-      .time {
-        margin-right: 12px;
-        .sort-down {
-          font-size: 12px;
-        }
-      }
-      .expense {
-        margin-right: 10px;
-      }
+    .title::after {
+      content: "";
+      position: absolute;
+      top: 12px;
+      bottom: 11px;
+      right: 32px;
+      width: 1px;
+      background-color: #e9e9e9;
     }
   }
   .content-wrap {
@@ -244,8 +234,21 @@ export default {
     padding: 10px;
     // padding-bottom: 50px;
   }
-}
-.view {
-  overflow: hidden;
+  .add {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #e9e9e9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    background-color: #fff;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+    color: @primary;
+  }
 }
 </style>

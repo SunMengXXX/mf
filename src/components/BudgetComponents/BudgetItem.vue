@@ -6,10 +6,15 @@
       is-link
       @click="getDetail"
     />
-    <sapn class="start">开始时间：{{ startTime.substring(0, 10) }} </sapn>
+    <sapn class="start"
+      >开始时间：{{
+        startTime === "未设置" ? startTime : startTime.substring(0, 10)
+      }}
+    </sapn>
     <AddBudget
       ref="addBudgetRef"
       :budgetid="userbudgetid"
+      :starttime="startTime"
       @update="refresh"
     ></AddBudget>
   </div>
@@ -58,7 +63,9 @@ export default {
       state.all = props.budget.amount;
       state.createTime = props.budget.createtime;
       state.remain = props.budget.residual;
-      state.startTime = props.budget.starttime;
+      state.startTime = props.budget.starttime
+        ? props.budget.starttime
+        : "未设置";
       state.state = props.budget.state;
       state.updateTime = props.budget.updatetime;
       state.userbudgetid = props.budget.userbudgetid;

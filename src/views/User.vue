@@ -7,7 +7,7 @@
       ></van-image>
       <div class="info">
         <span class="name">{{ user.nickName || "" }}</span>
-        <span class="slogen">性别：{{ user.sex || "" }}</span>
+        <span class="slogen">记账天数：{{ user.ledgerDay || "" }}</span>
       </div>
     </div>
     <Circle :all="allBudget" :remain="remainBudget"></Circle>
@@ -20,8 +20,18 @@
         @click="friendsList"
       />
     </van-grid>
+
+    <van-grid class="grid" direction="horizontal" :column-num="1" >
+      <van-grid-item icon="todo-list-o" to="/proposal" text="智能消费分析与建议"  is-link />
+    </van-grid>
+
     <div class="content">
-      <van-cell icon="user-circle-o" to="/info" title="修改信息" is-link />
+      <van-cell
+        icon="user-circle-o"
+        title="修改信息"
+        @click="modifyInfo"
+        is-link
+      />
       <van-cell icon="setting-o" to="/account" title="账户安全" is-link />
       <van-cell icon="smile-o" to="/about" title="关于我们" is-link />
     </div>
@@ -52,7 +62,7 @@ export default {
         nickName: "",
         registerTime: "",
         sex: "",
-        age: "",
+        birthday: "",
         ledgerCount: null,
         ledgerDay: null,
       }, // 用户信息
@@ -84,17 +94,21 @@ export default {
       state.user.nickName = data.nickname;
       state.user.registerTime = data.create_time;
       state.user.sex = data.sex;
-      state.user.age = data.age;
+      state.user.birthday = data.birthday;
       state.user.ledgerCount = data.numrecord;
       state.user.ledgerDay = data.numactivateday;
       state.user.avatar = data.icon;
+      //console.log(state.user.avatar);
+      //delete data["icon"];
       localStorage.setItem("user", JSON.stringify(data));
-      console.log(state.user.nickName, state.user.age, state.user.sex);
-      if (!state.user.nickName || !state.user.age || !state.user.sex) {
+      if (!data.nickname || !data.birthday || !data.sex) {
         Toast.fail("请您尽快填写个人信息");
       }
     };
 
+    const modifyInfo = () => {
+      router.push({ name: "Info", query: { icon: state.user.avatar } });
+    };
     //获取用户总预算
     const getUserBudget = async () => {
       const { data } = await axios.get("/HNBC/userbudget/all");
@@ -112,7 +126,7 @@ export default {
     };
     // 获取好友列表
     const friendsList = () => {
-      if (state.user.nickName && state.user.age && state.user.sex) {
+      if (state.user.nickName && state.user.birthday && state.user.sex) {
         router.push("/friends");
       } else {
         Toast.fail("完成个人信息后方可使用");
@@ -140,6 +154,7 @@ export default {
       budgetsList,
       friendReq,
       dot,
+      modifyInfo,
     };
   },
 };
@@ -153,8 +168,8 @@ export default {
   padding: 12px;
   .head {
     display: flex;
-    background: linear-gradient(315deg, #7fcea4 0%, #39be77 100%);
-    padding: 12px;
+    background: linear-gradient(315deg, #29dcf2 0%, #0d9cde 100%);
+    padding: 0.9rem;
     border-radius: 4px;
     margin-bottom: 12px;
     .avatar {

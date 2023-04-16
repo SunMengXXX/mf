@@ -177,7 +177,7 @@ function checkCAPTCHA(state, disabledController) {
         }
       } else if (state.phoneVisible) {
         const data = await axios.post("/HNBC/user/phonecaptcha", {
-          phone: state.userName,
+          phone: state.newPhone,
         });
         if (data.state === "200") {
           Toast.success(data.msg);
@@ -242,7 +242,7 @@ export default {
           email: state.newEmail,
           captcha: state.captcha,
         });
-        if (data) {
+        if (data.state === "200") {
           Toast.success(data.msg);
           state.newEmail = "";
           state.captcha = "";

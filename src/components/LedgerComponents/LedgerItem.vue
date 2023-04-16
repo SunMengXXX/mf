@@ -32,9 +32,9 @@
       <span @click="setting"
         ><van-icon name="setting-o" size="0.3rem" /> 设置</span
       >
-      <span><van-icon name="bill-o" size="0.3rem" /> 报表</span>
-      <span><van-icon name="balance-o" size="0.3rem" /> 总预算</span>
-      <span><van-icon name="after-sale" size="0.3rem" /> 总支出</span>
+      <span @click="ledgerBudget"
+        ><van-icon name="bill-o" size="0.3rem" /> 账本预算</span
+      >
     </div>
     <AddLedger ref="ModifyRef" :detail="details" v-bind="$attrs"></AddLedger>
     <AddSharers
@@ -43,16 +43,18 @@
       ref="AddSharersRef"
       v-bind="$attrs"
     ></AddSharers>
+    <BudgetSetting ref="BudgetSettingRef"> </BudgetSetting>
   </div>
 </template>
 
 <script>
-import { computed, onMounted, reactive, toRefs, watch } from "vue";
+import { computed, onMounted, provide, reactive, toRefs, watch } from "vue";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
 import { showToast, Toast } from "vant";
 import AddLedger from "./AddLedger.vue";
 import AddSharers from "./AddSharers.vue";
+import BudgetSetting from "./LedgerBudget/BudgetSetting.vue";
 import axios from "../../utils/axios";
 export default {
   name: "LedgerItem",
@@ -66,6 +68,7 @@ export default {
   components: {
     AddLedger,
     AddSharers,
+    BudgetSetting,
   },
   setup(props) {
     const router = useRouter();
@@ -91,11 +94,13 @@ export default {
     const ModifyRef = ref(null);
     // 修改账本成员
     const AddSharersRef = ref(null);
-
+    // 修改账本预算
+    const BudgetSettingRef = ref(null);
     // 从props获取账单ID
     state.details.ledgerID = props.ledgers.ledgerid;
     state.details.isShared = props.ledgers.isshared;
     state.details.isOwner = props.ledgers.isowner;
+    provide("ledgerid", state.details.ledgerID);
     // 通过账单ID查询详细数据
     const getLedger = async () => {
       const { data } = await axios.get(
@@ -109,9 +114,22 @@ export default {
       state.details.ledgerState = data.state;
     };
 
-    const getBill = () => {};
+    // 获取账单，路径传参
+    const getBill = () => {
+      console.log(state.details.ledgerID);
+      router.push({
+        name: "Home",
+        query: {
+          id: state.details.ledgerID,
+        },
+      });
+    };
     const modifySharers = () => {
       AddSharersRef.value.toggle();
+    };
+
+    const ledgerBudget = () => {
+      BudgetSettingRef.value.toggle();
     };
 
     const setting = () => {
@@ -126,7 +144,6 @@ export default {
     };
     onMounted(() => {
       getLedger();
-      console.log(axios.defaults.headers);
     });
     watch(props, (newVal) => {});
     return {
@@ -136,7 +153,9 @@ export default {
       ModifyRef,
       getBill,
       modifySharers,
+      ledgerBudget,
       AddSharersRef,
+      BudgetSettingRef,
     };
   },
 };

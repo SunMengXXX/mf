@@ -126,17 +126,21 @@ export default {
             ledgerid: id.value,
             nickname: item,
           });
-          Toast.success(data.msg);
+          if (data.state === "200") {
+            Toast.success(data.msg);
+          } /* else {
+            Toast.fail(data.msg);
+          } */
         } else {
           const data = await axios.put("/HNBC/ledger/deletesharer", {
             ledgerid: id.value,
             nickname: item,
           });
-          if (data.state === "404") {
-            Toast.fail(data.msg);
-          } else {
+          if (data.state === "200") {
             Toast.success(data.msg);
-          }
+          } /* else {
+            Toast.fail(data.msg);
+          } */
         }
         onRefresh();
       } else {
@@ -149,7 +153,7 @@ export default {
       state.friendsList = [];
       state.finished = false;
       state.page = 0;
-      state.isOwner = 0;
+      state.isOwner = props.detail.isOwner;
       onload();
     };
 
@@ -178,7 +182,11 @@ export default {
     const getSharedList = async () => {
       if (id.value !== "-1") {
         const { data } = await axios.get(`/HNBC/ledger/single/${id.value}`);
-        list.value = data.sharers;
+        const user = localStorage.getItem("user");
+        const nickname = user
+          ? JSON.parse(localStorage.getItem("user")).nickname
+          : null;
+        list.value = data.sharers.filter((nicknames) => nicknames !== nickname);
       }
     };
     //开启深度监视
@@ -188,8 +196,7 @@ export default {
       state.isShared = newVal.detail.isShared === "YES" ? true : false;
       state.isOwner = newVal.detail.isOwner;
     });
-    watch(unsharedList, (newVal) => {
-    });
+    watch(unsharedList, (newVal) => {});
     watch(state.friendsList, (newVal) => {});
     return {
       ...toRefs(state),

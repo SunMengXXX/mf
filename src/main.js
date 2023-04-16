@@ -3,7 +3,46 @@ import App from './App.vue'
 import dayjs from 'dayjs'
 import 'lib-flexible/flexible'
 import router from './router'
-import { Sticky, Cascader, TreeSelect, SwipeCell, Popover, ActionSheet, Col, Row, Radio, RadioGroup, Circle, Uploader, Search, Image as VanImage, Grid, GridItem, Button, Tabbar, TabbarItem, Form, Field, Icon, NavBar, Cell, CellGroup, Popup, List, PullRefresh, DatetimePicker, NumberKeyboard, Dialog, Progress, Rate, Divider } from 'vant';
+import {
+    Checkbox,
+    CheckboxGroup,
+    Sticky,
+    Cascader,
+    TreeSelect,
+    SwipeCell,
+    Popover,
+    ActionSheet,
+    Col,
+    Row,
+    Radio,
+    RadioGroup,
+    Circle,
+    Uploader,
+    Search,
+    Image as VanImage,
+    Grid,
+    GridItem,
+    Button,
+    Tabbar,
+    TabbarItem,
+    Form,
+    Field,
+    Icon,
+    NavBar,
+    Cell,
+    Popup,
+    List,
+    PullRefresh,
+    DatetimePicker,
+    NumberKeyboard,
+    Dialog,
+    Progress,
+    Rate,
+    Divider,
+    CellGroup,
+    Skeleton,
+    Loading,
+} from 'vant';
 import 'vant/lib/index.css'; // 全局引入样式
 import './index.css'
 
@@ -11,15 +50,15 @@ const app = createApp(App)
 
 // 全局过滤器
 app.config.globalProperties.$filters = {
-  transTime(date) {
-    return dayjs(Number(date)).format('HH:mm')
-  },
-  transDay(value) {
-    return dayjs(value).format('MM-DD')
-  },
-  transYDM(value) {
-    return dayjs(value).format('YYYY-MM-DD HH:mm')
-  }
+    transTime(date) {
+        return dayjs(Number(date)).format('HH:mm')
+    },
+    transDay(value) {
+        return dayjs(value).format('MM-DD')
+    },
+    transYDM(value) {
+        return dayjs(value).format('YYYY-MM-DD HH:mm')
+    }
 }
 
 app.use(router)
@@ -57,5 +96,8 @@ app.use(Search)
 app.use(GridItem)
 app.use(Grid)
 app.use(VanImage)
-
+app.use(CheckboxGroup)
+app.use(Checkbox)
+app.use(Skeleton)
+app.use(Loading)
 app.mount('#app')

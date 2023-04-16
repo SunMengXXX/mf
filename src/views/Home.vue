@@ -1,46 +1,64 @@
 <template>
-  <div class="home">
-    <div class="header">
-      <div class="data-wrap">
-        <span>默认账本</span>
-      </div>
-    </div>
+<div class="home">
+  <div>
+    <div class="block"></div>
+    <van-nav-bar
+      class="header1"
+      @click-left="back"
+      title="首页"
+    >
+    </van-nav-bar>
+  </div>
+
     <div class="blueBlock0">
       <Swipe class="my-swipe" indicator-color="white">
         <Swipe-item>
           <van-row justify="space-between">
-            <van-col span="8" @click="changeType('expense')" 
-            :class="{ active: type == 'expense'}"
+            <van-col
+              span="8"
+              @click="changeType('expense')"
+              :class="{ active: type == 'expense' }"
             >
               <van-col justify="center">
                 <van-row span="6" style="font-size: 1rem">{{
                   TotalExpense
                 }}</van-row>
-                <van-row span="6" style="font-size: 0.4rem">我的支出</van-row>
+                <van-row span="6" style="font-size: 0.4rem">账本支出</van-row>
               </van-col>
             </van-col>
-            <van-col span="8" @click="changeType('income')"
-              :class="{ active: type == 'income'}"
+            <van-col
+              span="8"
+              @click="changeType('income')"
+              :class="{ active: type == 'income' }"
             >
               <van-col justify="center">
                 <van-row span="6" style="font-size: 1rem">{{
                   TotalIncome
                 }}</van-row>
-                <van-row span="6" style="font-size: 0.4rem">我的收入</van-row>
+                <van-row span="6" style="font-size: 0.4rem">账本收入</van-row>
               </van-col>
             </van-col>
           </van-row>
         </Swipe-item>
-        <Swipe-item>2</Swipe-item>
-        <Swipe-item>3</Swipe-item>
+        <Swipe-item style="line-height: 2.1rem">
+          <van-row>
+            <van-col span="16" style="font-size: 0.7rem">搜索账单</van-col>
+            <van-col span="8" style="font-size: 0.6rem">
+              <van-icon class="active" name="search" @click="Search" />
+            </van-col>
+          </van-row>
+        </Swipe-item>
+        <Swipe-item style="line-height: 2.1rem">
+          <van-row>
+            <van-col span="16" style="font-size: 0.7rem">我的图表</van-col>
+            <van-col span="8" style="font-size: 0.6rem">
+              <van-icon class="active" name="search" @click="chartToggle" />
+            </van-col>
+          </van-row>
+        </Swipe-item>
       </Swipe>
     </div>
-    <span>
-      <DropdownMenu>
-        <DropdownItem v-model="value1" :options="option1" />
-        <DropdownItem v-model="value2" :options="option2" />
-      </DropdownMenu>
-    </span>
+    <span> </span>
     <div class="content-wrap">
       <van-pull-refresh
         v-model="refreshing"
@@ -75,27 +93,32 @@
     <div class="add" @click="addExpenseToggle" v-if="type == 'expense'">
       <van-icon name="records" />
     </div>
-
-    <div class="add" @click="addIncomeToggle" style="color: #ecbe25" v-if="type == 'income'">
+    <div
+      class="add"
+      @click="addIncomeToggle"
+      style="color: #ecbe25"
+      v-if="type == 'income'"
+    >
       <van-icon name="records" />
     </div>
-
-    <!-- <PopType ref="popRef" @select="select" />
-    <PopMonth ref="popMonthRef" @select="selectMonth" /> -->
     <ExpenseAdd ref="popExpenseAddRef" @refresh="onRefresh" />
-    <IncomeAdd ref="popIncomeAddRef" @refresh="onRefresh" />
+    <IncomeAdd ref="popIncomeAddRef" @refresh="incomeOnRefresh" />
   </div>
 </template>
 
 <script>
 import { reactive, ref, toRefs, onMounted } from "vue";
-import { Swipe, SwipeItem } from "vant";
+import { Search, Swipe, SwipeItem } from "vant";
 import { DropdownMenu, DropdownItem } from "vant";
+
+import IncomeAdd from "../components/IncomeComponents/IncomeAdd.vue";
 import ExpenseItem from "../components/BillComponents/ExpenseItem.vue";
-import IncomeAdd from "../components/IncomeComponents/IncomeAdd.vue"
 import IncomeItem from "../components/IncomeComponents/IncomeItem.vue";
 import ExpenseAdd from "../components/BillComponents/ExpenseAdd.vue";
+import Header from "../components/PageComponents/Header.vue";
+import SearchBill from "../views/SearchBill.vue";
 import axios from "../utils/axios";
+import router from "../router";
 import dayjs from "dayjs";
 export default {
   components: {
@@ -107,24 +130,15 @@ export default {
     DropdownItem,
     ExpenseAdd,
     IncomeAdd,
+    SearchBill,
+    Header,
   },
   setup() {
     const popExpenseAddRef = ref(null);
-    const popIncomeAddRef =ref(null);
-    const value1 = ref(0);
-    const value2 = ref("a");
-    const option1 = [
-      { text: "全部商品", value: 0 },
-      { text: "新款商品", value: 1 },
-      { text: "活动商品", value: 2 },
-    ];
-    const option2 = [
-      { text: "默认排序", value: "a" },
-      { text: "好评排序", value: "b" },
-      { text: "销量排序", value: "c" },
-    ];
+    const popIncomeAddRef = ref(null);
+    const popChartRef = ref(null);
     const state = reactive({
-      defaultledgerId: 1,
+      defaultledgerId: -1,
       page: 1,
       incomePage: 1,
 
@@ -151,20 +165,39 @@ export default {
     });
 
     onMounted(async () => {
-      getIncomeList();
+      axios.defaults.headers["authorization"] = `${
+        localStorage.getItem("token") || null
+      }`;
+      router.isReady().then(() => {
+        if (router.currentRoute.value.query.id) {
+          state.defaultledgerId = router.currentRoute.value.query.id;
+          localStorage.setItem("LedgerId", state.defaultledgerId);
+        }
+        // getIncomeList();
+      });
     });
 
+    const chartToggle = () => {
+      router.push({ path: "/data" });
+    };
+
     const getBillList = async () => {
-      let ret = await axios.get(`/HNBC/user/getdefaultledger`);
-      state.defaultledgerId = ret.data;
-      localStorage.setItem('LedgerId',ret.data);
-      const { data } = await axios.get(`/HNBC/bill/selectall/${ret.data}`);
+      if (state.defaultledgerId === -1) {
+        let ret = await axios.get(`/HNBC/userinfo/getdefaultledger`);
+        state.defaultledgerId = ret.data;
+        localStorage.setItem("LedgerId", ret.data);
+      }
+
+      const { data } = await axios.get(
+        `/HNBC/bill/selectall/${state.defaultledgerId}`
+      );
       if (state.refreshing) {
         state.list = [];
         state.refreshing = false;
       }
       state.loading = false;
       state.list = state.list.concat(data);
+      console.log("state.list" + state.list);
       state.list.sort(sortExpense);
 
       state.TotalExpense = countTotal(state.list, "cost").toFixed(2);
@@ -174,9 +207,14 @@ export default {
     };
 
     const getIncomeList = async () => {
-      let ret = await axios.get(`/HNBC/user/getdefaultledger`);
-      state.defaultledgerId = ret.data;
-      const { data } = await axios.get(`/HNBC/income/selectall/${ret.data}`);
+      if (state.defaultledgerId === -1) {
+        let ret = await axios.get(`/HNBC/userinfo/getdefaultledger`);
+        state.defaultledgerId = ret.data;
+        localStorage.setItem("LedgerId", ret.data);
+      }
+      const { data } = await axios.get(
+        `/HNBC/income/selectall/${state.defaultledgerId}`
+      );
       if (state.incomeRefreshing) {
         state.incomeList = [];
         state.incomeRefreshing = false;
@@ -228,24 +266,7 @@ export default {
       state.incomeLoading = true;
       incomeOnLoad();
     };
-    // 类型弹窗开关
-    // const toggle = () => {
-    //   popRef.value.toggle()
-    // }
-    // 筛选类型
-    // const select = (item) => {
-    //   state.currentSelect = item
-    //   onRefresh()
-    // }
-    // 月份弹窗开关
-    // const monthToggle = () => {
-    //   popMonthRef.value.toggle()
-    // }
-    // 筛选月份
-    // const selectMonth = (item) => {
-    //   state.currentTime = item
-    //   onRefresh()
-    // }
+
     // 添加账单弹窗开关
     const addExpenseToggle = () => {
       console.log("popExpenseAddRef", popExpenseAddRef);
@@ -256,14 +277,18 @@ export default {
       console.log("popIncomeAddRef", popIncomeAddRef);
       popIncomeAddRef.value.toggle();
     };
+    const Search = () => {
+      router.push({ path: "/searchbill" });
+      console.log("1");
+    };
     const changeType = (type) => {
       state.type = type;
     };
     //根据id值 从小到大排序
-    function sortExpense(a, b) {
+    function sortExpense(b, a) {
       return Date.parse(a.billtime) - Date.parse(b.billtime);
     }
-    function sortIncome(a, b) {
+    function sortIncome(b, a) {
       return Date.parse(a.incometime) - Date.parse(b.incometime);
     }
     //计算对象数组中某个属性合计
@@ -283,10 +308,13 @@ export default {
       // popMonthRef,
       popExpenseAddRef,
       popIncomeAddRef,
+      popChartRef,
       // toggle,
       // monthToggle,
+      chartToggle,
       addExpenseToggle,
       addIncomeToggle,
+
       onLoad,
       incomeOnLoad,
       onRefresh,
@@ -294,10 +322,7 @@ export default {
       // select,
       // selectMonth
       changeType,
-      value1,
-      value2,
-      option1,
-      option2,
+      Search,
     };
   },
 };
@@ -305,9 +330,22 @@ export default {
 
 <style lang='less' scoped>
 @import url("../config/custom.less");
-.active{
-  font-weight:bold;
-  text-shadow: 3px 5px 5px #FF0000;
+.block {
+  width: 100%;
+  height: 46px;
+}
+.header1 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  .more {
+    font-size: 20px;
+  }
+}
+.active {
+  font-weight: bold;
+  text-shadow: 3px 5px 5px #ff0000;
 }
 .home {
   height: 100%;

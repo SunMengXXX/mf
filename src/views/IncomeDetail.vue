@@ -11,7 +11,11 @@
         </div>
         <div class="time">
           <span>收入类型</span>
-          <span>{{ detail.income_EarningType.join("、") }}</span>
+          <span>
+            <ul>
+          <li v-for="item in detail.income_EarningType" :key="item" class="itemcss">{{item}}</li>
+            </ul>
+          </span>
         </div>
         <div class="time">
           <span>记录时间</span>
@@ -24,18 +28,6 @@
         <div class="remark">
           <span>备注</span>
           <span>{{ detail.incomeMarks || "-" }}</span>
-        </div>
-        <div class="photo">
-          <span>图片</span>
-          <van-image
-            class="avatar"
-            :src="detail.incomePhoto"
-            width="150"
-            height="150"
-            v-if="detail.incomePhoto != ''"
-            ><template v-slot:loading>
-              <van-loading type="spinner" size="20" /> </template
-          ></van-image>
         </div>
       </div>
       <div class="operation van-hairline--top">

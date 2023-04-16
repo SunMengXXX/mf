@@ -1,16 +1,19 @@
 <template>
-  <div>
-    <van-circle
-      :current-rate="currentRate"
-      :rate="rate"
-      :speed="1"
-      :color="gradientColor"
-      :text="text"
-      @load="onload"
-    />
-    <span>当月已使用预算{{ (all - remain).toFixed(2) }}</span>
-    <span>当月总预算{{ all.toFixed(2) }}</span>
-  </div>
+  <van-row justify="center">
+    <van-col offset="" span="4rem"
+      ><van-circle
+        :current-rate="currentRate"
+        :rate="rate"
+        :speed="1"
+        :color="gradientColor"
+        :text="text"
+        @load="onload"
+    /></van-col>
+    <van-col class="budget">
+      <div>当月已使用预算{{ (all - remain).toFixed(2) }}</div>
+      <div>当月总预算{{ all.toFixed(2) }}</div>
+    </van-col>
+  </van-row>
 </template>
 <script>
 import { ref, computed, watch, toRaw } from "vue";
@@ -65,3 +68,8 @@ export default {
   },
 };
 </script>
+<style lang="less" scoped>
+.budget {
+  font-size: large;
+}
+</style>

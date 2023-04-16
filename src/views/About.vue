@@ -5,20 +5,19 @@
       content-position="left"
       :style="{ color: '#39be77', borderColor: '#39be77', padding: '0 16px' }"
     >
-      关于作者
+      关于我们
     </van-divider>
     <div class="content">
-      大家好，我是本次实验的作者陈尼克，目前从业 5 年，就职于浙江杭州某互联网公司的高级前端开发。
+      大家好，我们是来自河海大学的海纳百川小组，这个项目是我们在2022年至2023年的服务外包竞赛中的作品。
     </div>
     <van-divider
       content-position="left"
       :style="{ color: '#39be77', borderColor: '#39be77', padding: '0 16px' }"
     >
-      关于课程
+      关于项目
     </van-divider>
     <div class="content">
-      <p>课程中使用到的技术包括 Vite 构建项目、flexible 移动端适配、Vant 3.x 组件库、Vue-Router 4.x 路由插件、Echarts 5.x 图表插件等等。</p>
-      <p>本课程提供在线服务端接口地址，无需自建服务或 Mock 数据。</p>
+      <p>此次项目前端用到的技术栈包括 Vite 构建项目、flexible 移动端适配、Vant 3.x 组件库、Vue-Router 4.x 路由插件等等。</p>
     </div>
   </div>
 </template>

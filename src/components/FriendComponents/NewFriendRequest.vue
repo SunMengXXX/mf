@@ -29,12 +29,17 @@ export default {
 
     const handle = async (option) => {
       const friend = `{"${state.friendName}":"${option}"}`;
-      const data = await axios.post("/HNBC/friend/handlerequest",friend);
-      Toast.success(data.msg)
-      setTimeout(()=>{
-        state.show = false;
-      },800)
-      checkFriendRequest()
+      const data = await axios.post("/HNBC/friend/handlerequest", friend);
+      if (data.state === "200") {
+        Toast.success(data.msg);
+        setTimeout(() => {
+          state.show = false;
+        }, 800);
+        checkFriendRequest();
+      } else {
+        Toast.fail(data.msg);
+        checkFriendRequest();
+      }
     };
 
     onMounted(() => {
@@ -49,7 +54,7 @@ export default {
     });
     return {
       ...toRefs(state),
-      handle
+      handle,
     };
   },
 };

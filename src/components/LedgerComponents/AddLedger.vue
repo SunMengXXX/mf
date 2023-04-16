@@ -1,5 +1,11 @@
 <template>
-  <van-popup :show="show" position="bottom" round @touchmove.stop>
+  <van-popup
+    :show="show"
+    ref="popupRef"
+    position="bottom"
+    round
+    @touchmove.stop
+  >
     <div class="add-wrap">
       <header class="header">
         <span class="close" @click="show = false"
@@ -111,15 +117,17 @@ export default {
       ledgerType: "self",
       isOwner: false,
     });
-
+    const popupRef = ref(null);
     const toggle = () => {
       state.show = !state.show;
       if (state.show) {
         document.body.style.overflow = "hidden"; // 弹层显示时
         document.body.style.position = "relative";
+        console.log(popupRef.value);
       } else {
         document.body.style.overflow = "auto"; // 弹层不显示时
         document.body.style.position = null;
+        console.log(popupRef.value);
       }
     };
 
@@ -156,12 +164,14 @@ export default {
             ledgerid: detail.ledgerID,
             ledgername: detail.ledgerName,
             marks: detail.marks,
-            isshared: detail.ledgerType === "self" ? "NO" : "YES",
-            sharers: [],
             state: checked.value === "1" ? "进行中" : "已结束",
           };
           const result = await axios.put("/HNBC/ledger/updateledger", params);
-          Toast.success(result.msg);
+          if (data.state === "200") {
+            Toast.success(data.msg);
+          } /* else {
+            Toast.fail(data.msg);
+          } */
           ctx.emit("refresh");
         } else {
           Toast.fail("只有创建者可以修改参数");
@@ -204,6 +214,7 @@ export default {
       marks,
       setMark,
       unsetMark,
+      popupRef,
       checked,
     };
   },

@@ -11,16 +11,8 @@
       </header>
       <div class="filter">
         <div class="type">
-          <span
-            @click="recognition = !recognition"
-            :class="{ expense: true, active: recognition == false }"
-            >手动输入</span
-          >
-          <span
-            @click="recognition = !recognition"
-            :class="{ income: true, active: recognition == true }"
-            >图片识别</span
-          >
+          <!-- <span :class="{ expense: true, active: true }">手动输入</span> -->
+          <span :class="{ income: true, active: true }">图片识别</span>
         </div>
 
         <div @click="showDay = true" class="time">
@@ -28,12 +20,11 @@
           <i class="iconfont sort-down" />
         </div>
       </div>
-      <div class="ManualInput" v-if="!recognition">
+      <div class="InputFunction">
         <div class="money">
           <span class="sufix">支出¥</span>
           <span class="amount animation">{{ amount }}</span>
         </div>
-
         <div class="type-warp">
           <div class="type-body">
             <div class="type-item" @click="ChangeType1">
@@ -46,7 +37,7 @@
               >
                 <i class="iconfont" :class="typeMap[1].icon" />
               </span>
-              <span>食品和饮料</span>
+              <span>食品饮料</span>
             </div>
             <div class="type-item" @click="ChangeType2">
               <span
@@ -58,7 +49,7 @@
               >
                 <i class="iconfont" :class="typeMap[2].icon" />
               </span>
-              <span>服装和个人用品</span>
+              <span>服装日化</span>
             </div>
             <div class="type-item" @click="ChangeType3">
               <span
@@ -70,7 +61,7 @@
               >
                 <i class="iconfont" :class="typeMap[3].icon" />
               </span>
-              <span>住房和家居</span>
+              <span>住房家居</span>
             </div>
             <div class="type-item" @click="ChangeType4">
               <span
@@ -82,7 +73,7 @@
               >
                 <i class="iconfont" :class="typeMap[4].icon" />
               </span>
-              <span>交通和通讯</span>
+              <span>交通通讯</span>
             </div>
             <div class="type-item" @click="ChangeType5">
               <span
@@ -94,8 +85,12 @@
               >
                 <i class="iconfont" :class="typeMap[5].icon" />
               </span>
-              <span>娱乐和文化</span>
+              <span>娱乐文化</span>
             </div>
+          </div>
+        </div>
+        <div class="type-warp">
+          <div class="type-body">
             <div class="type-item" @click="ChangeType6">
               <span
                 :class="{
@@ -118,7 +113,7 @@
               >
                 <i class="iconfont" :class="typeMap[7].icon" />
               </span>
-              <span>教育和培训</span>
+              <span>教育培训</span>
             </div>
             <div class="type-item" @click="ChangeType8">
               <span
@@ -142,7 +137,7 @@
               >
                 <i class="iconfont" :class="typeMap[9].icon" />
               </span>
-              <span>金融和投资</span>
+              <span>金融投资</span>
             </div>
             <div class="type-item" @click="ChangeType10">
               <span
@@ -158,30 +153,24 @@
             </div>
           </div>
         </div>
-        <!-- 有备注 -->
-        <div class="remark" v-if="remark" @click="remarkVisible = true">
-          {{ remark }}
-        </div>
-        <!-- 无备注 -->
-
-        <div class="remark" v-else @click="remarkVisible = true">添加备注</div>
-        <!-- 数字键盘 -->
-        <van-number-keyboard
-          :show="true"
-          extra-key="."
-          @delete="remove"
-          @input="inputChange"
-        />
-      </div>
-      <div class="ImageInput" v-if="recognition">
+        <van-cell-group inset>
+          <van-field
+            v-model="remark"
+            rows="2"
+            autosize
+            label="留言"
+            type="textarea"
+            maxlength="1000"
+            placeholder="请输入留言"
+            show-word-limit
+          />
+        </van-cell-group>
         <van-field name="uploader" label="上传票据">
           <template #input>
             <van-uploader
-              v-model="avatar"
+              v-model="photoRe"
               :before-read="beforeRead"
               :max-count="1"
-              :max-size="2 * 1024 * 1024"
-              @oversize="onOversize"
               @delete="deleteFile"
               capture="camera"
               accept="image/*"
@@ -195,34 +184,15 @@
             >
           </template>
         </van-field>
-        <van-cell-group>
-          <van-cell title="金额" :value="amount" />
-          <van-cell title="类型" :value="currentType" />
-          <van-cell title="消费时间" :value="dateBill" />
-          <van-cell title="备注" :value="remark" />
-        </van-cell-group>
-      </div>
-
-      <van-dialog
-        :show="remarkVisible"
-        title="备注"
-        :show-cancel-button="true"
-        :overlay="true"
-        :close-on-click-overlay="true"
-        @cancel="cancel"
-        @confirm="confirm"
-      >
-        <van-field
-          v-model="remark"
-          rows="2"
-          autosize
-          type="textarea"
-          maxlength="20"
-          placeholder="请输入备注"
-          show-word-limit
+        <!-- 数字键盘 -->
+        <van-number-keyboard
+          :show="true"
+          extra-key="."
+          @delete="remove"
+          @input="inputChange"
         />
-      </van-dialog>
 
+      </div>
       <van-popup
         :show="showDay"
         position="bottom"
@@ -237,16 +207,24 @@
           @cancel="showDay = false"
         />
       </van-popup>
+      <van-popup v-model:show="showCenter" round :style="{ padding: '64px' }" >
+        <van-loading type="spinner" color="#1989fa" />
+      </van-popup>
     </div>
   </van-popup>
 </template>
 
 <script>
-import { reactive, toRefs, onMounted, ref, watch } from "vue";
+import { reactive, toRefs, onMounted, ref, watch, toRaw, qs } from "vue";
 import dayjs from "dayjs";
 import { typeMap } from "../../utils";
 import axios from "../../utils/axios";
 import { Toast } from "vant";
+import {
+  base64ToFile,
+  convertBase64UrlToBlob,
+  compressImage,
+} from "../../tools/compressImage";
 export default {
   props: {
     refresh: Function,
@@ -258,53 +236,22 @@ export default {
   components: {},
   setup(props, ctx) {
     const id = props.detail && props.detail.billID; // 外部传进来的账单详情 id
-    const avatar = ref();
-    const remarkVisible = ref(false);
+    const photoRe = ref([]);
     const state = reactive({
-      active1:
-        id && props.detail.bill_CostType.indexOf("食品和饮料") >= 0
-          ? true
-          : false,
-      active2:
-        id && props.detail.bill_CostType.indexOf("服装和个人用品") >= 0
-          ? true
-          : false,
-      active3:
-        id && props.detail.bill_CostType.indexOf("住房和家居") >= 0
-          ? true
-          : false,
-      active4:
-        id && props.detail.bill_CostType.indexOf("交通和通讯") >= 0
-          ? true
-          : false,
-      active5:
-        id && props.detail.bill_CostType.indexOf("娱乐和文化") >= 0
-          ? true
-          : false,
-      active6:
-        id && props.detail.bill_CostType.indexOf("医疗保健") >= 0
-          ? true
-          : false,
-      active7:
-        id && props.detail.bill_CostType.indexOf("教育和培训") >= 0
-          ? true
-          : false,
-      active8:
-        id && props.detail.bill_CostType.indexOf("日常用品") >= 0
-          ? true
-          : false,
-      active9:
-        id && props.detail.bill_CostType.indexOf("金融和投资") >= 0
-          ? true
-          : false,
-      active10:
-        id && props.detail.bill_CostType.indexOf("其他支出") >= 0
-          ? true
-          : false,
+      active1: false,
+      active2: false,
+      active3: false,
+      active4: false,
+      active5: false,
+      active6: false,
+      active7: false,
+      active8: false,
+      active9: false,
+      active10: false,
       showExpense: false, // 显示隐藏添加账单弹窗
       amount: id ? props.detail.billCost : "", // 账单价格
       typeMap: typeMap, // 类型key-value键值对
-      currentType: id ? props.detail.bill_CostType : [], // 当前选择的类型对象
+      currentType: [],
       showDay: false, // 选择日期显示/隐藏
       date: id
         ? dayjs(props.detail.bill_Time).format("YYYY-MM-DD HH:mm:ss")
@@ -314,22 +261,11 @@ export default {
         : dayjs().format("YYYY-MM-DD HH:mm:ss"), // 传送的日期
       remark: id ? props.detail.billMarks : "",
       photo: id ? props.detail.billPhoto : "",
-      recognition: false,
+      showCenter:false,
     });
 
-    onMounted(async () => {
-      console.log(state.date);
-    });
+    onMounted(async () => {});
 
-    const cancel = () => {
-      Toast.fail("取消修改");
-      remarkVisible.value = false;
-    };
-    const confirm = () => {
-      // Toast.fail("取消修改");
-      remarkVisible.value = false;
-      console.log(state.remark);
-    };
     const toggle = () => {
       state.showExpense = !state.showExpense;
     };
@@ -339,18 +275,18 @@ export default {
       Toast.fail("文件太大");
     }
     //校验图片格式
-    const beforeRead = (avatar) => {
+    const beforeRead = (photoRe) => {
       let fileType = "";
-      if (avatar instanceof Array && avatar.length) {
-        for (let i = 0; i < avatar.length; i++) {
-          fileType = avatar[i].type.substr(0, avatar[i].type.indexOf("/"));
+      if (photoRe instanceof Array && photoRe.length) {
+        for (let i = 0; i < photoRe.length; i++) {
+          fileType = photoRe[i].type.substr(0, photoRe[i].type.indexOf("/"));
           if (fileType !== "image") {
             Toast("格式错误");
             return false;
           }
         }
       } else {
-        fileType = avatar.type.substr(0, avatar.type.indexOf("/"));
+        fileType = photoRe.type.substr(0, photoRe.type.indexOf("/"));
         if (fileType !== "image") {
           Toast("格式错误");
           return false;
@@ -360,11 +296,9 @@ export default {
     };
 
     //删除图片
-    const deleteFile = (avatar) => {
-      avatar = "";
-      console.log(avatar);
+    const deleteFile = (photoRe) => {
+      photoRe = "";
     };
-
 
     // 监听数字输入框改变值
     const inputChange = (value) => {
@@ -390,27 +324,101 @@ export default {
     const choseDay = (value) => {
       state.date = value;
       state.dateBill = dayjs(value).format("YYYY-MM-DD HH:mm:ss");
-      console.log(state.dateBill);
       state.showDay = false;
     };
 
     const photo_identification = async () => {
-      axios.defaults.headers.get["Content-Type"] = "multipart/form-data";
-      /* console.log(axios.defaults.headers); */
-      const processingphoto = JSON.stringify(avatar.value[0].content);
-      console.log(processingphoto);
-      const formdata = new FormData();
-      formdata.append("icon", processingphoto);
-      const data = await axios.get("/HNBC/bill/recognition", formdata);
-      console.log(data);
-      axios.defaults.headers.get["Content-Type"] = "application/json";
-      if (data.state === "200") {
-        state.amount = data.data.cost;
-        state.dateBill = data.data.billtime;
-        state.remark = data.data.marks;
-        state.currentType= data.data.cost_type;
-        Toast.success("图片识别成功");
+      var compressedImg = "";
+      if (photoRe.value) {
+        state.showCenter=true;
+        compressedImg = photoRe.value[0].file.content;
+        const file = photoRe.value[0].file;
+        compressedImg = file.content;
+        let url =
+          window.webkitURL.createObjectURL(file) ||
+          window.URL.createObjectURL(file);
+        compressImage(url, {
+          width: 1200, // 压缩后图片的宽
+          quality: 0.8, // 压缩后图片的清晰度，取值0-1，不传默认为0.7，值越小，所绘制出的图像越模糊
+        }).then((result) => {
+          compressedImg = result; // result即为压缩后的结果
+        });
       }
+      else{
+        Toast.fail("请先选择照片");
+      }
+      setTimeout(async () => {
+        const data = await axios.post("/HNBC/bill/recognition", {
+          processingphoto: compressedImg,
+        });       
+        if (data.state == "200") {
+          state.showCenter=false;
+          const base64 = data.data.photo;
+          if (base64) {
+            const file = base64ToFile(base64, "photoRe_modified");
+            let url =
+              window.webkitURL.createObjectURL(file) ||
+              window.URL.createObjectURL(file);
+            photoRe.value.push({
+              content: base64,
+              file: file,
+              name: photoRe,
+              status: "done",
+              message: "上传中",
+              isImage: true,
+              url,
+            });
+          }
+          state.amount = data.data.cost;
+          state.dateBill = data.data.billtime;
+          state.photo = data.data.photo;
+          console.log("photo"+state.photo);
+          state.remark = data.data.marks;
+          var virtualt = data.data.cost_type;
+          var typelist = [
+            "食品和饮料",
+            "服装和个人用品",
+            "住房和家居",
+            "交通和通讯",
+            "娱乐和文化",
+            "医疗保健",
+            "教育和培训",
+            "日常用品",
+            "金融和投资",
+            "其他支出",
+          ];
+          var tempidx = 10;
+          for (var i = 0; i < typelist.length; i += 1) {
+            if (virtualt == typelist[i]) {
+              tempidx = i + 1;
+              break;
+            }
+          }
+          if (tempidx == 1) {
+            ChangeType1();
+          } else if (tempidx == 2) {
+            ChangeType2();
+          } else if (tempidx == 3) {
+            ChangeType3();
+          } else if (tempidx == 4) {
+            ChangeType4();
+          } else if (tempidx == 5) {
+            ChangeType5();
+          } else if (tempidx == 6) {
+            ChangeType6();
+          } else if (tempidx == 7) {
+            ChangeType7();
+          } else if (tempidx == 8) {
+            ChangeType8();
+          } else if (tempidx == 9) {
+            ChangeType9();
+          } else if (tempidx == 10) {
+            ChangeType10();
+          }
+        } else {
+          Toast.fail(data.msg);
+        }
+      }, 200);
     };
 
     const addBill = async () => {
@@ -418,159 +426,168 @@ export default {
         Toast.fail("请输入具体金额");
         return;
       }
-    if (state.currentType=="") {
+      if (state.currentType == "") {
         Toast.fail("请选择账单类别");
         return;
       }
       if (id) {
         const params = {
-          billid: id,
-          cost: Number(state.amount).toFixed(2),
+          billid: parseInt(id),
+          cost: parseFloat(state.amount),
           billtime: state.dateBill,
           photo: state.photo,
           marks: state.remark,
           cost_type: state.currentType,
         };
-        console.log(params);
         // 如果有 id 需要调用详情更新接口
-        const result = await axios.put("/HNBC/bill/update", params);
-        state.amount = "";
-        state.currentType = [];
-        state.showExpense = false;
-        state.date = new Date();
-        state.remark = "";
-        Toast.success("账单修改成功");
-        ctx.emit("refresh");
+        const data = await axios.put("/HNBC/bill/update", params);
+        if (data.state == "200") {
+          Toast.success(data.msg);
+          state.amount = "";
+          state.currentType = [];
+          state.showExpense = false;
+          state.date = new Date();
+          state.remark = "";
+          state.active1 = false;
+          state.active2 = false;
+          state.active3 = false;
+          state.active4 = false;
+          state.active5 = false;
+          state.active6 = false;
+          state.active7 = false;
+          state.active8 = false;
+          state.active9 = false;
+          state.active10 = false;
+          ctx.emit("refresh");
+        } else {
+          Toast.fail(data.msg);
+        }
       } else {
         const params = {
-          ledgerid: localStorage.getItem("LedgerId"),
-          cost: Number(state.amount).toFixed(2),
-          billtime: state.dateBill,
-          photo: state.photo,
+          ledgerid: parseInt(localStorage.getItem("LedgerId")),
+          cost: parseFloat(state.amount),
+          billtime: dayjs(state.dateBill).format("YYYY-MM-DD HH:mm:ss"),
+          photo: state.photo ? state.photo : null,
           marks: state.remark,
           cost_type: state.currentType,
         };
-        const result = await axios.post("/HNBC/bill/add", params);
-        state.amount = "";
-        state.currentType = [];
-        state.showExpense = false;
-        state.date = new Date();
-        state.remark = "";
-        Toast.success("账单添加成功");
-        ctx.emit("refresh");
+        console.log("params photo"+state.photo);
+        const data = await axios.post("/HNBC/bill/add", JSON.stringify(params));
+        if (data.state == "200") {
+          console.log("params photo"+state.photo);
+          Toast.success(data.msg);
+          state.amount = "";
+          state.currentType = [];
+          state.showExpense = false;
+          state.date = new Date();
+          state.remark = "";
+          state.active1 = false;
+          state.active2 = false;
+          state.active3 = false;
+          state.active4 = false;
+          state.active5 = false;
+          state.active6 = false;
+          state.active7 = false;
+          state.active8 = false;
+          state.active9 = false;
+          state.active10 = false;
+          ctx.emit("refresh");
+        } else {
+          Toast.fail(data.msg);
+        }
       }
     };
     const ChangeType1 = () => {
       if (state.active1 == false) {
         state.active1 = true;
         state.currentType.push("食品和饮料");
-        console.log(state.currentType);
       } else {
         state.active1 = false;
         state.currentType.splice(state.currentType.indexOf("食品和饮料"), 1);
-        console.log(state.currentType);
       }
     };
     const ChangeType2 = () => {
       if (state.active2 == false) {
         state.active2 = true;
         state.currentType.push("服装和个人用品");
-        console.log(state.currentType);
       } else {
         state.active2 = false;
         state.currentType.splice(
           state.currentType.indexOf("服装和个人用品"),
           1
         );
-        console.log(state.currentType);
       }
     };
     const ChangeType3 = () => {
       if (state.active3 == false) {
         state.active3 = true;
         state.currentType.push("住房和家居");
-        console.log(state.currentType);
       } else {
         state.active3 = false;
         state.currentType.splice(state.currentType.indexOf("住房和家居"), 1); //数组删除指定项
-        console.log(state.currentType);
       }
     };
     const ChangeType4 = () => {
       if (state.active4 == false) {
         state.active4 = true;
         state.currentType.push("交通和通讯");
-        console.log(state.currentType);
       } else {
         state.active4 = false;
         state.currentType.splice(state.currentType.indexOf("交通和通讯"), 1); //数组删除指定项
-        console.log(state.currentType);
       }
     };
     const ChangeType5 = () => {
       if (state.active5 == false) {
         state.active5 = true;
         state.currentType.push("娱乐和文化");
-        console.log(state.currentType);
       } else {
         state.active5 = false;
         state.currentType.splice(state.currentType.indexOf("娱乐和文化"), 1); //数组删除指定项
-        console.log(state.currentType);
       }
     };
     const ChangeType6 = () => {
       if (state.active6 == false) {
         state.active6 = true;
         state.currentType.push("医疗保健");
-        console.log(state.currentType);
       } else {
         state.active6 = false;
         state.currentType.splice(state.currentType.indexOf("医疗保健"), 1); //数组删除指定项
-        console.log(state.currentType);
       }
     };
     const ChangeType7 = () => {
       if (state.active7 == false) {
         state.active7 = true;
         state.currentType.push("教育和培训");
-        console.log(state.currentType);
       } else {
         state.active7 = false;
         state.currentType.splice(state.currentType.indexOf("教育和培训"), 1); //数组删除指定项
-        console.log(state.currentType);
       }
     };
     const ChangeType8 = () => {
       if (state.active8 == false) {
         state.active8 = true;
         state.currentType.push("日常用品");
-        console.log(state.currentType);
       } else {
         state.active8 = false;
         state.currentType.splice(state.currentType.indexOf("日常用品"), 1); //数组删除指定项
-        console.log(state.currentType);
       }
     };
     const ChangeType9 = () => {
       if (state.active9 == false) {
         state.active9 = true;
         state.currentType.push("金融和投资");
-        console.log(state.currentType);
       } else {
         state.active9 = false;
         state.currentType.splice(state.currentType.indexOf("金融和投资"), 1); //数组删除指定项
-        console.log(state.currentType);
       }
     };
     const ChangeType10 = () => {
       if (state.active10 == false) {
         state.active10 = true;
         state.currentType.push("其他支出");
-        console.log(state.currentType);
       } else {
         state.active10 = false;
         state.currentType.splice(state.currentType.indexOf("其他支出"), 1); //数组删除指定项
-        console.log(state.currentType);
       }
     };
     watch(state.amount, (newVal) => {});
@@ -581,9 +598,6 @@ export default {
       remove,
       choseDay,
       addBill,
-      remarkVisible,
-      cancel,
-      confirm,
       ChangeType1,
       ChangeType2,
       ChangeType3,
@@ -594,7 +608,7 @@ export default {
       ChangeType8,
       ChangeType9,
       ChangeType10,
-      avatar,
+      photoRe,
       photo_identification,
       deleteFile,
       onOversize,
@@ -753,22 +767,6 @@ export default {
         }
       }
     }
-  }
-  .icon-wrapper {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    font-size: 18px;
-  }
-
-  .icon-wrapper .van-icon-success {
-    line-height: 32px;
-    color: var(--van-blue);
-  }
-
-  .icon-wrapper .van-icon-cross {
-    line-height: 32px;
-    color: var(--van-gray-5);
   }
   .remark {
     padding: 0 24px;

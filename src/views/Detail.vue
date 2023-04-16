@@ -1,3 +1,4 @@
+
 <template>
   <div class="detail">
     <Header title="账单详情" />
@@ -11,7 +12,13 @@
         </div>
         <div class="time">
           <span>账单类型</span>
-          <span>{{ detail.bill_CostType.toString() }}</span>
+          <span>
+            <ul>
+              <li v-for="item in detail.bill_CostType" :key="item">
+                {{ item }}
+              </li>
+            </ul>
+          </span>
         </div>
         <div class="time">
           <span>记录时间</span>
@@ -28,7 +35,7 @@
         <div class="photo">
           <span>图片</span>
           <van-image
-            class="avatar"
+            class="avater"
             :src="detail.billPhoto"
             width="150"
             height="150"
@@ -108,10 +115,26 @@ export default {
       state.detail.billCost = cost;
       state.detail.billCreateTime = createtime;
       state.detail.billUpdateTime = updatetime;
-      state.detail.billPhoto = photo;
+      // state.detail.billPhoto = photo;
       state.detail.billMarks = marks;
       state.detail.bill_CostType = cost_type;
       state.detail.bill_Time = billtime;
+      console.log(state.detail.billPhoto);
+      getPhoto();
+    };
+    const getPhoto = async () => {
+      var billid = parseInt(state.detail.billID);
+      console.log("params photo" + state.photo);
+      const data = await axios.get(
+        `/HNBC/bill/single/${billid}`
+      );
+
+      if (data.state == "200") {
+
+        state.detail.billPhoto = data.data.photo;
+        // console.log(state);
+        console.log("state.detail.billPhoto" + state.detail.billPhoto);
+      }
     };
     // 打开编辑弹窗方法
     const openModal = () => {
@@ -142,6 +165,7 @@ export default {
       openModal,
       getDetail,
       deleteDetail,
+      getPhoto,
     };
   },
 };
@@ -219,21 +243,20 @@ export default {
       }
     }
   }
-  .photo{
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      margin-bottom: 12px;
-      margin-right: 2.26667rem;
-      span:nth-of-type(1) {
-        flex: 6;
-        color: @color-text-caption;
-      }
-      span:nth-of-type(2) {
-        flex: 6;
-        color: @color-text-base;
-      }
-      
+  .photo {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 12px;
+    margin-right: 2.26667rem;
+    span:nth-of-type(1) {
+      flex: 6;
+      color: @color-text-caption;
+    }
+    span:nth-of-type(2) {
+      flex: 6;
+      color: @color-text-base;
+    }
   }
   .operation {
     width: 100%;

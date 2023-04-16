@@ -140,11 +140,16 @@ export default {
             requestnickname: state.newFriendNickName.trim(),
             notes: state.newFriendNotes.trim(),
           });
-          Toast.success(data.msg);
-          state.newFriendNickName = "";
-          state.newFriendNotes = "";
-          state.showDialog = false;
-          return true;
+          if (data.state === "200") {
+            Toast.success(data.msg);
+            state.newFriendNickName = "";
+            state.newFriendNotes = "";
+            state.showDialog = false;
+            return true;
+          } else {
+            Toast.fail(data.msg);
+            return false;
+          }
         } else {
           Toast.fail("无效昵称");
           state.newFriendNickName = "";

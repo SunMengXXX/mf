@@ -1,7 +1,7 @@
 <template>
   <div class="auth">
     <Header :title="type == 'login' ? '登录' : '注册'" />
-    <img class="logo" src="//s.yezgea02.com/1606836859539/onpeice.png" alt="" />
+    <img class="logo" src="../logo.jpg" round fit="cover" alt="" />
     <van-form class="form-wrap" @submit="onSubmit" v-if="type == 'login'">
       <div class="form">
         <van-field
